@@ -1,0 +1,99 @@
+/* ===== Notion 亮色风 ===== */
+
+body.style-notion-light .markdown-body {
+  color: #37352f;
+  background: #fff;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  word-wrap: break-word;
+}
+
+body.style-notion-light .markdown-body h1,
+body.style-notion-light .markdown-body h2,
+body.style-notion-light .markdown-body h3,
+body.style-notion-light .markdown-body h4,
+body.style-notion-light .markdown-body h5,
+body.style-notion-light .markdown-body h6 {
+  color: #37352f;
+  line-height: 1.3;
+  margin: 1.4em 0 0.4em;
+}
+
+body.style-notion-light .markdown-body h1 { font-size: 1.875em; font-weight: 700; }
+body.style-notion-light .markdown-body h2 { font-size: 1.5em; font-weight: 600; }
+body.style-notion-light .markdown-body h3 { font-size: 1.25em; font-weight: 600; }
+body.style-notion-light .markdown-body h4 { font-size: 1.1em; font-weight: 600; }
+body.style-notion-light .markdown-body h5,
+body.style-notion-light .markdown-body h6 { font-size: 1em; font-weight: 600; }
+
+body.style-notion-light .markdown-body h1 + p,
+body.style-notion-light .markdown-body h2 + p,
+body.style-notion-light .markdown-body h3 + p,
+body.style-notion-light .markdown-body h4 + p { margin-top: 0; }
+
+body.style-notion-light .markdown-body p { margin: 0 0 1em; }
+
+body.style-notion-light .markdown-body ul,
+body.style-notion-light .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-notion-light .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-notion-light .markdown-body a { color: #0b6e99; text-decoration: none; }
+body.style-notion-light .markdown-body a:hover { text-decoration: underline; }
+
+body.style-notion-light .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.2em 0 0.2em 1em;
+  border-left: 3px solid #37352f;
+}
+
+body.style-notion-light .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-notion-light .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.85em;
+  padding: 0.2em 0.4em;
+  background: rgba(135, 131, 120, 0.15);
+  color: #eb5757;
+  border-radius: 3px;
+}
+
+body.style-notion-light .markdown-body pre {
+  padding: 16px;
+  margin: 0 0 1em;
+  background: #f7f6f3;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-notion-light .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  color: #37352f;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+
+body.style-notion-light .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-notion-light .markdown-body th,
+body.style-notion-light .markdown-body td {
+  border-bottom: 1px solid #e9e9e7;
+  padding: 7px 12px;
+  text-align: left;
+}
+
+body.style-notion-light .markdown-body th { font-weight: 600; }
+
+body.style-notion-light .markdown-body img { max-width: 100%; }
+
+body.style-notion-light .markdown-body hr {
+  border: none;
+  border-top: 1px solid #e9e9e7;
+  margin: 2em 0;
+}

@@ -1,0 +1,160 @@
+/* ===== Typora Night 风（暗） ===== */
+
+body.style-typora-night .markdown-body {
+  color: #b8bfc6;
+  background: #363b40;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+body.style-typora-night .markdown-body h1,
+body.style-typora-night .markdown-body h2,
+body.style-typora-night .markdown-body h3,
+body.style-typora-night .markdown-body h4,
+body.style-typora-night .markdown-body h5,
+body.style-typora-night .markdown-body h6 {
+  color: #dedede;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.2em 0 0.5em;
+}
+
+body.style-typora-night .markdown-body h1 { font-size: 2em; }
+body.style-typora-night .markdown-body h2 { font-size: 1.5em; }
+body.style-typora-night .markdown-body h3 { font-size: 1.2em; }
+body.style-typora-night .markdown-body h4 { font-size: 1.1em; }
+body.style-typora-night .markdown-body h5,
+body.style-typora-night .markdown-body h6 { font-size: 1em; color: #9da3a9; }
+
+body.style-typora-night .markdown-body h1 + p,
+body.style-typora-night .markdown-body h2 + p,
+body.style-typora-night .markdown-body h3 + p,
+body.style-typora-night .markdown-body h4 + p { margin-top: 0; }
+
+body.style-typora-night .markdown-body p { margin: 0 0 1em; }
+
+body.style-typora-night .markdown-body ul,
+body.style-typora-night .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-typora-night .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-typora-night .markdown-body a { color: #6ab0f3; text-decoration: none; }
+body.style-typora-night .markdown-body a:hover { text-decoration: underline; }
+
+body.style-typora-night .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.1em 0 0.1em 1em;
+  color: #9da3a9;
+  border-left: 4px solid #4c5258;
+}
+
+body.style-typora-night .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-typora-night .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: #424b54;
+  color: #ffb86c;
+  border-radius: 3px;
+}
+
+body.style-typora-night .markdown-body pre {
+  padding: 14px;
+  margin: 0 0 1em;
+  background: #2f3337;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-typora-night .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  color: #b8bfc6;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+body.style-typora-night .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-typora-night .markdown-body th,
+body.style-typora-night .markdown-body td {
+  border: 1px solid #4c5258;
+  padding: 6px 13px;
+}
+
+body.style-typora-night .markdown-body th { background: #474d54; font-weight: 700; }
+
+body.style-typora-night .markdown-body img { max-width: 100%; }
+
+body.style-typora-night .markdown-body hr {
+  border: none;
+  border-top: 1px solid #4c5258;
+  margin: 2em 0;
+}
+
+/* ---- 外壳配色 ---- */
+
+body.style-typora-night { color: #b8bfc6; background: #363b40; }
+
+body.style-typora-night #topbar,
+body.style-typora-night #sidebar { background: #2f3337; border-color: #4c5258; }
+
+body.style-typora-night #edit-toggle,
+body.style-typora-night #save-btn,
+body.style-typora-night #style-select { background: #424b54; border-color: #4c5258; color: #b8bfc6; }
+
+body.style-typora-night #edit-toggle:hover,
+body.style-typora-night #save-btn:hover,
+body.style-typora-night #file-tree summary:hover,
+body.style-typora-night #file-tree a:hover,
+body.style-typora-night #outline a:hover { background: #424b54; }
+
+body.style-typora-night #file-tree summary { color: #9da3a9; }
+
+body.style-typora-night #file-tree a,
+body.style-typora-night #outline a { color: #b8bfc6; }
+
+body.style-typora-night #file-tree a.active,
+body.style-typora-night #outline a.active { background: #424b54; color: #6ab0f3; }
+
+body.style-typora-night #outline-box { border-color: #4c5258; }
+
+body.style-typora-night #content { background: #363b40; }
+
+body.style-typora-night #empty { color: #9da3a9; }
+body.style-typora-night #empty .hint { color: #62696f; }
+
+body.style-typora-night #tabbar { background: #2f3337; border-color: #4c5258; }
+
+body.style-typora-night .tab { border-color: #4c5258; color: #9da3a9; }
+body.style-typora-night .tab.active { background: #363b40; color: #b8bfc6; }
+
+body.style-typora-night .tab-close { color: #9da3a9; }
+body.style-typora-night .tab-close:hover { background: #424b54; color: #b8bfc6; }
+
+body.style-typora-night #editor { background: #363b40; color: #b8bfc6; border-color: #4c5258; }
+
+body.style-typora-night #save-status { color: #82c26e; }
+body.style-typora-night #save-status.error { color: #e06c75; }
+
+body.style-typora-night #close-confirm { background: #2f3337; border-color: #4c5258; color: #b8bfc6; }
+
+body.style-typora-night #close-confirm button { background: #424b54; border-color: #4c5258; color: #b8bfc6; }
+
+body.style-typora-night #searchbar { background: #424b54; border-color: #4c5258; }
+
+body.style-typora-night #searchbar button { color: #b8bfc6; }
+body.style-typora-night #searchbar button:hover { background: #4c5258; }
+
+body.style-typora-night mark.tot-search { background: #6b4d00; color: #b8bfc6; }
+body.style-typora-night mark.tot-search.current { background: #d4a72c; color: #2f3337; }
+
+body.style-typora-night #sidebar-resizer:hover,
+body.style-typora-night #outline-resizer:hover { background: #4c5258; }

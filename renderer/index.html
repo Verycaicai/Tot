@@ -5,10 +5,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: mdfile: data:; font-src file: data:">
   <title>Tot</title>
   <link rel="stylesheet" href="base.css">
-  <link id="gh-style" rel="stylesheet" href="../lib/github-markdown-light.css">
-  <link rel="stylesheet" href="styles/minimal.css">
 </head>
-<body class="style-light">
+<body>
 
   <header id="topbar">
     <div id="searchbar" hidden>
@@ -21,11 +19,8 @@
     <div id="controls">
       <span id="save-status"></span>
       <button id="edit-toggle" disabled title="编辑当前文档">编辑</button>
-      <select id="style-select" title="渲染风格">
-        <option value="light">GitHub 亮</option>
-        <option value="dark">GitHub 暗</option>
-        <option value="minimal">极简</option>
-      </select>
+      <button id="save-btn" disabled title="保存当前文档 (Ctrl+S)">保存</button>
+      <select id="style-select" title="渲染风格"></select>
     </div>
   </header>
 

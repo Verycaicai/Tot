@@ -1,0 +1,160 @@
+/* ===== Dracula 风（暗） ===== */
+
+body.style-dracula .markdown-body {
+  color: #f8f8f2;
+  background: #282a36;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+
+body.style-dracula .markdown-body h1,
+body.style-dracula .markdown-body h2,
+body.style-dracula .markdown-body h3,
+body.style-dracula .markdown-body h4,
+body.style-dracula .markdown-body h5,
+body.style-dracula .markdown-body h6 {
+  color: #f8f8f2;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6em 0 0.5em;
+}
+
+body.style-dracula .markdown-body h1 { font-size: 2em; }
+body.style-dracula .markdown-body h2 { font-size: 1.5em; }
+body.style-dracula .markdown-body h3 { font-size: 1.25em; }
+body.style-dracula .markdown-body h4 { font-size: 1.1em; }
+body.style-dracula .markdown-body h5,
+body.style-dracula .markdown-body h6 { font-size: 1em; color: #bd93f9; }
+
+body.style-dracula .markdown-body h1 + p,
+body.style-dracula .markdown-body h2 + p,
+body.style-dracula .markdown-body h3 + p,
+body.style-dracula .markdown-body h4 + p { margin-top: 0; }
+
+body.style-dracula .markdown-body p { margin: 0 0 1em; }
+
+body.style-dracula .markdown-body ul,
+body.style-dracula .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-dracula .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-dracula .markdown-body a { color: #8be9fd; text-decoration: none; }
+body.style-dracula .markdown-body a:hover { text-decoration: underline; }
+
+body.style-dracula .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.1em 0 0.1em 1em;
+  font-style: italic;
+  border-left: 4px solid #bd93f9;
+}
+
+body.style-dracula .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-dracula .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: #44475a;
+  color: #f8f8f2;
+  border-radius: 4px;
+}
+
+body.style-dracula .markdown-body pre {
+  padding: 14px;
+  margin: 0 0 1em;
+  background: #21222c;
+  border: 1px solid #44475a;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-dracula .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+
+body.style-dracula .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-dracula .markdown-body th,
+body.style-dracula .markdown-body td {
+  border: 1px solid #44475a;
+  padding: 6px 13px;
+}
+
+body.style-dracula .markdown-body th { background: #44475a; font-weight: 700; }
+
+body.style-dracula .markdown-body img { max-width: 100%; }
+
+body.style-dracula .markdown-body hr {
+  border: none;
+  border-top: 1px solid #44475a;
+  margin: 2em 0;
+}
+
+/* ---- 外壳配色 ---- */
+
+body.style-dracula { color: #f8f8f2; background: #282a36; }
+
+body.style-dracula #topbar,
+body.style-dracula #sidebar { background: #21222c; border-color: #44475a; }
+
+body.style-dracula #edit-toggle,
+body.style-dracula #save-btn,
+body.style-dracula #style-select { background: #44475a; border-color: #44475a; color: #f8f8f2; }
+
+body.style-dracula #edit-toggle:hover,
+body.style-dracula #save-btn:hover,
+body.style-dracula #file-tree summary:hover,
+body.style-dracula #file-tree a:hover,
+body.style-dracula #outline a:hover { background: #44475a; }
+
+body.style-dracula #file-tree summary { color: #6272a4; }
+
+body.style-dracula #file-tree a,
+body.style-dracula #outline a { color: #f8f8f2; }
+
+body.style-dracula #file-tree a.active,
+body.style-dracula #outline a.active { background: #44475a; color: #8be9fd; }
+
+body.style-dracula #outline-box { border-color: #44475a; }
+
+body.style-dracula #content { background: #282a36; }
+
+body.style-dracula #empty { color: #6272a4; }
+body.style-dracula #empty .hint { color: #4b5270; }
+
+body.style-dracula #tabbar { background: #21222c; border-color: #44475a; }
+
+body.style-dracula .tab { border-color: #44475a; color: #6272a4; }
+body.style-dracula .tab.active { background: #282a36; color: #f8f8f2; }
+
+body.style-dracula .tab-close { color: #6272a4; }
+body.style-dracula .tab-close:hover { background: #44475a; color: #f8f8f2; }
+
+body.style-dracula #editor { background: #282a36; color: #f8f8f2; border-color: #44475a; }
+
+body.style-dracula #save-status { color: #50fa7b; }
+body.style-dracula #save-status.error { color: #ff5555; }
+
+body.style-dracula #close-confirm { background: #21222c; border-color: #44475a; color: #f8f8f2; }
+
+body.style-dracula #close-confirm button { background: #44475a; border-color: #44475a; color: #f8f8f2; }
+
+body.style-dracula #searchbar { background: #44475a; border-color: #44475a; }
+
+body.style-dracula #searchbar button { color: #f8f8f2; }
+body.style-dracula #searchbar button:hover { background: #6272a4; }
+
+body.style-dracula mark.tot-search { background: #6b4d00; color: #f8f8f2; }
+body.style-dracula mark.tot-search.current { background: #d4a72c; color: #282a36; }
+
+body.style-dracula #sidebar-resizer:hover,
+body.style-dracula #outline-resizer:hover { background: #44475a; }

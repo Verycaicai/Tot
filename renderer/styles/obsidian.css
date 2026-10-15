@@ -1,0 +1,160 @@
+/* ===== Obsidian 原生风（暗） ===== */
+
+body.style-obsidian .markdown-body {
+  color: #dcddde;
+  background: #1e1e1e;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  word-wrap: break-word;
+}
+
+body.style-obsidian .markdown-body h1,
+body.style-obsidian .markdown-body h2,
+body.style-obsidian .markdown-body h3,
+body.style-obsidian .markdown-body h4,
+body.style-obsidian .markdown-body h5 {
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6em 0 0.5em;
+}
+
+body.style-obsidian .markdown-body h1 { font-size: 1.8em; }
+body.style-obsidian .markdown-body h2 { font-size: 1.5em; }
+body.style-obsidian .markdown-body h3 { font-size: 1.3em; }
+body.style-obsidian .markdown-body h4 { font-size: 1.2em; }
+body.style-obsidian .markdown-body h5 { font-size: 1.1em; }
+body.style-obsidian .markdown-body h6 { font-size: 1.1em; font-weight: 700; color: #7f6df2; margin: 1.6em 0 0.5em; }
+
+body.style-obsidian .markdown-body h1 + p,
+body.style-obsidian .markdown-body h2 + p,
+body.style-obsidian .markdown-body h3 + p,
+body.style-obsidian .markdown-body h4 + p { margin-top: 0; }
+
+body.style-obsidian .markdown-body p { margin: 0 0 1em; }
+
+body.style-obsidian .markdown-body ul,
+body.style-obsidian .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-obsidian .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-obsidian .markdown-body a { color: #7f6df2; text-decoration: none; }
+body.style-obsidian .markdown-body a:hover { text-decoration: underline; }
+
+body.style-obsidian .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.1em 0 0.1em 1em;
+  color: #b0b0b0;
+  border-left: 3px solid #4a4a4a;
+}
+
+body.style-obsidian .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-obsidian .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: #2d2d2d;
+  color: #f78c6c;
+  border-radius: 4px;
+}
+
+body.style-obsidian .markdown-body pre {
+  padding: 14px;
+  margin: 0 0 1em;
+  background: #262626;
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-obsidian .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  color: #dcddde;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+
+body.style-obsidian .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-obsidian .markdown-body th,
+body.style-obsidian .markdown-body td {
+  border: 1px solid #3a3a3a;
+  padding: 6px 13px;
+}
+
+body.style-obsidian .markdown-body th { background: #2a2a2a; font-weight: 600; }
+
+body.style-obsidian .markdown-body img { max-width: 100%; }
+
+body.style-obsidian .markdown-body hr {
+  border: none;
+  border-top: 1px solid #3a3a3a;
+  margin: 2em 0;
+}
+
+/* ---- 外壳配色 ---- */
+
+body.style-obsidian { color: #dcddde; background: #1e1e1e; }
+
+body.style-obsidian #topbar,
+body.style-obsidian #sidebar { background: #252526; border-color: #333; }
+
+body.style-obsidian #edit-toggle,
+body.style-obsidian #save-btn,
+body.style-obsidian #style-select { background: #2d2d2d; border-color: #333; color: #dcddde; }
+
+body.style-obsidian #edit-toggle:hover,
+body.style-obsidian #save-btn:hover,
+body.style-obsidian #file-tree summary:hover,
+body.style-obsidian #file-tree a:hover,
+body.style-obsidian #outline a:hover { background: #2f2f2f; }
+
+body.style-obsidian #file-tree summary { color: #8a8a8a; }
+
+body.style-obsidian #file-tree a,
+body.style-obsidian #outline a { color: #dcddde; }
+
+body.style-obsidian #file-tree a.active,
+body.style-obsidian #outline a.active { background: rgba(127, 109, 242, 0.25); color: #b3a6ff; }
+
+body.style-obsidian #outline-box { border-color: #333; }
+
+body.style-obsidian #content { background: #1e1e1e; }
+
+body.style-obsidian #empty { color: #8a8a8a; }
+body.style-obsidian #empty .hint { color: #555; }
+
+body.style-obsidian #tabbar { background: #252526; border-color: #333; }
+
+body.style-obsidian .tab { border-color: #333; color: #8a8a8a; }
+body.style-obsidian .tab.active { background: #1e1e1e; color: #dcddde; }
+
+body.style-obsidian .tab-close { color: #8a8a8a; }
+body.style-obsidian .tab-close:hover { background: #2f2f2f; color: #dcddde; }
+
+body.style-obsidian #editor { background: #1e1e1e; color: #dcddde; border-color: #333; }
+
+body.style-obsidian #save-status { color: #7bd88f; }
+body.style-obsidian #save-status.error { color: #e06c75; }
+
+body.style-obsidian #close-confirm { background: #252526; border-color: #333; color: #dcddde; }
+
+body.style-obsidian #close-confirm button { background: #2d2d2d; border-color: #333; color: #dcddde; }
+
+body.style-obsidian #searchbar { background: #2d2d2d; border-color: #333; }
+
+body.style-obsidian #searchbar button { color: #dcddde; }
+body.style-obsidian #searchbar button:hover { background: #3a3a3a; }
+
+body.style-obsidian mark.tot-search { background: #6b4d00; color: #dcddde; }
+body.style-obsidian mark.tot-search.current { background: #d4a72c; color: #1e1e1e; }
+
+body.style-obsidian #sidebar-resizer:hover,
+body.style-obsidian #outline-resizer:hover { background: #333; }

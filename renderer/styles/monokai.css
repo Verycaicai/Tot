@@ -1,0 +1,161 @@
+/* ===== Monokai 风（暗） ===== */
+
+body.style-monokai .markdown-body {
+  color: #f8f8f2;
+  background: #272822;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+
+body.style-monokai .markdown-body h1,
+body.style-monokai .markdown-body h2,
+body.style-monokai .markdown-body h3,
+body.style-monokai .markdown-body h4,
+body.style-monokai .markdown-body h5,
+body.style-monokai .markdown-body h6 {
+  color: #f8f8f2;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6em 0 0.5em;
+}
+
+body.style-monokai .markdown-body h1 { font-size: 2em; }
+body.style-monokai .markdown-body h2 { font-size: 1.5em; }
+body.style-monokai .markdown-body h3 { font-size: 1.25em; }
+body.style-monokai .markdown-body h4 { font-size: 1.1em; }
+body.style-monokai .markdown-body h5,
+body.style-monokai .markdown-body h6 { font-size: 1em; color: #66d9ef; }
+
+body.style-monokai .markdown-body h1 + p,
+body.style-monokai .markdown-body h2 + p,
+body.style-monokai .markdown-body h3 + p,
+body.style-monokai .markdown-body h4 + p { margin-top: 0; }
+
+body.style-monokai .markdown-body p { margin: 0 0 1em; }
+
+body.style-monokai .markdown-body ul,
+body.style-monokai .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-monokai .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-monokai .markdown-body a { color: #66d9ef; text-decoration: none; }
+body.style-monokai .markdown-body a:hover { text-decoration: underline; }
+
+body.style-monokai .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.1em 0 0.1em 1em;
+  color: #cfcfc2;
+  border-left: 4px solid #75715e;
+}
+
+body.style-monokai .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-monokai .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: #3e3d32;
+  color: #e6db74;
+  border-radius: 4px;
+}
+
+body.style-monokai .markdown-body pre {
+  padding: 14px;
+  margin: 0 0 1em;
+  background: #272822;
+  border: 1px solid #49483e;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-monokai .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  color: #f8f8f2;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+
+body.style-monokai .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-monokai .markdown-body th,
+body.style-monokai .markdown-body td {
+  border: 1px solid #49483e;
+  padding: 6px 13px;
+}
+
+body.style-monokai .markdown-body th { background: #3e3d32; font-weight: 700; }
+
+body.style-monokai .markdown-body img { max-width: 100%; }
+
+body.style-monokai .markdown-body hr {
+  border: none;
+  border-top: 1px solid #49483e;
+  margin: 2em 0;
+}
+
+/* ---- 外壳配色 ---- */
+
+body.style-monokai { color: #f8f8f2; background: #272822; }
+
+body.style-monokai #topbar,
+body.style-monokai #sidebar { background: #23241f; border-color: #49483e; }
+
+body.style-monokai #edit-toggle,
+body.style-monokai #save-btn,
+body.style-monokai #style-select { background: #3e3d32; border-color: #49483e; color: #f8f8f2; }
+
+body.style-monokai #edit-toggle:hover,
+body.style-monokai #save-btn:hover,
+body.style-monokai #file-tree summary:hover,
+body.style-monokai #file-tree a:hover,
+body.style-monokai #outline a:hover { background: #3e3d32; }
+
+body.style-monokai #file-tree summary { color: #75715e; }
+
+body.style-monokai #file-tree a,
+body.style-monokai #outline a { color: #f8f8f2; }
+
+body.style-monokai #file-tree a.active,
+body.style-monokai #outline a.active { background: #3e3d32; color: #a6e22e; }
+
+body.style-monokai #outline-box { border-color: #49483e; }
+
+body.style-monokai #content { background: #272822; }
+
+body.style-monokai #empty { color: #75715e; }
+body.style-monokai #empty .hint { color: #55503f; }
+
+body.style-monokai #tabbar { background: #23241f; border-color: #49483e; }
+
+body.style-monokai .tab { border-color: #49483e; color: #75715e; }
+body.style-monokai .tab.active { background: #272822; color: #f8f8f2; }
+
+body.style-monokai .tab-close { color: #75715e; }
+body.style-monokai .tab-close:hover { background: #3e3d32; color: #f8f8f2; }
+
+body.style-monokai #editor { background: #272822; color: #f8f8f2; border-color: #49483e; }
+
+body.style-monokai #save-status { color: #a6e22e; }
+body.style-monokai #save-status.error { color: #f92672; }
+
+body.style-monokai #close-confirm { background: #23241f; border-color: #49483e; color: #f8f8f2; }
+
+body.style-monokai #close-confirm button { background: #3e3d32; border-color: #49483e; color: #f8f8f2; }
+
+body.style-monokai #searchbar { background: #3e3d32; border-color: #49483e; }
+
+body.style-monokai #searchbar button { color: #f8f8f2; }
+body.style-monokai #searchbar button:hover { background: #49483e; }
+
+body.style-monokai mark.tot-search { background: #6b4d00; color: #f8f8f2; }
+body.style-monokai mark.tot-search.current { background: #d4a72c; color: #272822; }
+
+body.style-monokai #sidebar-resizer:hover,
+body.style-monokai #outline-resizer:hover { background: #49483e; }

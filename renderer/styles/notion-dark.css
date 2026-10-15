@@ -1,0 +1,159 @@
+/* ===== Notion 暗色风 ===== */
+
+body.style-notion-dark .markdown-body {
+  color: rgba(255, 255, 255, 0.81);
+  background: #191919;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  word-wrap: break-word;
+}
+
+body.style-notion-dark .markdown-body h1,
+body.style-notion-dark .markdown-body h2,
+body.style-notion-dark .markdown-body h3,
+body.style-notion-dark .markdown-body h4,
+body.style-notion-dark .markdown-body h5,
+body.style-notion-dark .markdown-body h6 {
+  color: #fff;
+  line-height: 1.3;
+  margin: 1.4em 0 0.4em;
+}
+
+body.style-notion-dark .markdown-body h1 { font-size: 1.875em; font-weight: 700; }
+body.style-notion-dark .markdown-body h2 { font-size: 1.5em; font-weight: 600; }
+body.style-notion-dark .markdown-body h3 { font-size: 1.25em; font-weight: 600; }
+body.style-notion-dark .markdown-body h4 { font-size: 1.1em; font-weight: 600; }
+body.style-notion-dark .markdown-body h5,
+body.style-notion-dark .markdown-body h6 { font-size: 1em; font-weight: 600; }
+
+body.style-notion-dark .markdown-body h1 + p,
+body.style-notion-dark .markdown-body h2 + p,
+body.style-notion-dark .markdown-body h3 + p,
+body.style-notion-dark .markdown-body h4 + p { margin-top: 0; }
+
+body.style-notion-dark .markdown-body p { margin: 0 0 1em; }
+
+body.style-notion-dark .markdown-body ul,
+body.style-notion-dark .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-notion-dark .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-notion-dark .markdown-body a { color: #529cca; text-decoration: none; }
+body.style-notion-dark .markdown-body a:hover { text-decoration: underline; }
+
+body.style-notion-dark .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.2em 0 0.2em 1em;
+  border-left: 3px solid rgba(255, 255, 255, 0.6);
+}
+
+body.style-notion-dark .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-notion-dark .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.85em;
+  padding: 0.2em 0.4em;
+  background: rgba(255, 255, 255, 0.13);
+  color: #ff7369;
+  border-radius: 3px;
+}
+
+body.style-notion-dark .markdown-body pre {
+  padding: 16px;
+  margin: 0 0 1em;
+  background: #242424;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-notion-dark .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.81);
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+
+body.style-notion-dark .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-notion-dark .markdown-body th,
+body.style-notion-dark .markdown-body td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 7px 12px;
+  text-align: left;
+}
+
+body.style-notion-dark .markdown-body th { font-weight: 600; }
+
+body.style-notion-dark .markdown-body img { max-width: 100%; }
+
+body.style-notion-dark .markdown-body hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  margin: 2em 0;
+}
+
+/* ---- 外壳配色 ---- */
+
+body.style-notion-dark { color: #d4d4d4; background: #191919; }
+
+body.style-notion-dark #topbar,
+body.style-notion-dark #sidebar { background: #202020; border-color: #303030; }
+
+body.style-notion-dark #edit-toggle,
+body.style-notion-dark #save-btn,
+body.style-notion-dark #style-select { background: #2a2a2a; border-color: #303030; color: #d4d4d4; }
+
+body.style-notion-dark #edit-toggle:hover,
+body.style-notion-dark #save-btn:hover,
+body.style-notion-dark #file-tree summary:hover,
+body.style-notion-dark #file-tree a:hover,
+body.style-notion-dark #outline a:hover { background: #2a2a2a; }
+
+body.style-notion-dark #file-tree summary { color: #8a8a8a; }
+
+body.style-notion-dark #file-tree a,
+body.style-notion-dark #outline a { color: #d4d4d4; }
+
+body.style-notion-dark #file-tree a.active,
+body.style-notion-dark #outline a.active { background: rgba(82, 156, 202, 0.25); color: #529cca; }
+
+body.style-notion-dark #outline-box { border-color: #303030; }
+
+body.style-notion-dark #content { background: #191919; }
+
+body.style-notion-dark #empty { color: #8a8a8a; }
+body.style-notion-dark #empty .hint { color: #555; }
+
+body.style-notion-dark #tabbar { background: #202020; border-color: #303030; }
+
+body.style-notion-dark .tab { border-color: #303030; color: #8a8a8a; }
+body.style-notion-dark .tab.active { background: #191919; color: #d4d4d4; }
+
+body.style-notion-dark .tab-close { color: #8a8a8a; }
+body.style-notion-dark .tab-close:hover { background: #2a2a2a; color: #d4d4d4; }
+
+body.style-notion-dark #editor { background: #191919; color: #d4d4d4; border-color: #303030; }
+
+body.style-notion-dark #save-status { color: #3fb950; }
+body.style-notion-dark #save-status.error { color: #ff7369; }
+
+body.style-notion-dark #close-confirm { background: #202020; border-color: #303030; color: #d4d4d4; }
+
+body.style-notion-dark #close-confirm button { background: #2a2a2a; border-color: #303030; color: #d4d4d4; }
+
+body.style-notion-dark #searchbar { background: #2a2a2a; border-color: #303030; }
+
+body.style-notion-dark #searchbar button { color: #d4d4d4; }
+body.style-notion-dark #searchbar button:hover { background: #3a3a3a; }
+
+body.style-notion-dark mark.tot-search { background: #6b4d00; color: #d4d4d4; }
+body.style-notion-dark mark.tot-search.current { background: #d4a72c; color: #191919; }
+
+body.style-notion-dark #sidebar-resizer:hover,
+body.style-notion-dark #outline-resizer:hover { background: #303030; }

@@ -157,6 +157,28 @@ function handleMdfile(request) {
 
 let appMenu = null;
 
+const MIT_LICENSE = `MIT License
+
+Copyright (c) 2026 Verycaicai
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.`;
+
 function buildMenu() {
   appMenu = Menu.buildFromTemplate([
     {
@@ -164,8 +186,67 @@ function buildMenu() {
       submenu: [
         { label: '打开文件', accelerator: 'CmdOrCtrl+O', click: () => win?.webContents.send('menu-command', 'open-file') },
         { label: '打开文件夹', accelerator: 'CmdOrCtrl+Shift+O', click: () => win?.webContents.send('menu-command', 'open-folder') },
-        { type: 'separator' },
         { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => win?.webContents.send('menu-command', 'save') },
+        { type: 'separator' },
+        { role: 'quit', label: '退出' },
+      ],
+    },
+    {
+      label: '编辑',
+      submenu: [
+        { role: 'undo', label: '撤销' },
+        { role: 'redo', label: '重做' },
+        { type: 'separator' },
+        { role: 'cut', label: '剪切' },
+        { role: 'copy', label: '复制' },
+        { role: 'paste', label: '粘贴' },
+        { type: 'separator' },
+        { role: 'selectAll', label: '全选' },
+      ],
+    },
+    {
+      label: '视图',
+      submenu: [
+        { role: 'reload', label: '重新加载' },
+        { type: 'separator' },
+        { role: 'resetZoom', label: '实际大小' },
+        { role: 'zoomIn', label: '放大' },
+        { role: 'zoomOut', label: '缩小' },
+        { type: 'separator' },
+        { role: 'togglefullscreen', label: '全屏' },
+        { role: 'toggleDevTools', label: '开发者工具' },
+      ],
+    },
+    {
+      label: '窗口',
+      submenu: [
+        { role: 'minimize', label: '最小化' },
+        { role: 'close', label: '关闭窗口' },
+        { type: 'separator' },
+        {
+          label: '关于 Tot',
+          click: () => {
+            if (!win) return;
+            dialog.showMessageBox(win, {
+              type: 'info',
+              title: '关于 Tot',
+              message: 'Tot',
+              detail: `版本 ${app.getVersion()}\n\n本地 Markdown 浏览器\nElectron + 原生 JavaScript`,
+            });
+          },
+        },
+        {
+          label: 'MIT 许可协议',
+          click: () => {
+            if (!win) return;
+            dialog.showMessageBox(win, {
+              type: 'info',
+              title: 'MIT 许可协议',
+              message: 'MIT License',
+              detail: MIT_LICENSE,
+            });
+          },
+        },
       ],
     },
   ]);
@@ -237,6 +318,10 @@ function createWindow() {
         if (process.env.TOT_CHECK) {
           console.log('[dev:menu]', JSON.stringify({
             labels: appMenu.items.map((i) => i.label),
+            fileItems: appMenu.items[0].submenu.items.map((i) => i.label ?? i.type),
+            editItems: appMenu.items[1].submenu.items.map((i) => i.label ?? i.type),
+            viewItems: appMenu.items[2].submenu.items.map((i) => i.label ?? i.type),
+            windowItems: appMenu.items[3].submenu.items.map((i) => i.label ?? i.type),
             saveAcc: appMenu.items[0].submenu.items.find((i) => i.label === '保存')?.accelerator,
           }));
           await new Promise((r) => setTimeout(r, 800));
@@ -269,20 +354,27 @@ function createWindow() {
             })`,
           ));
           if (process.env.TOT_STYLE) {
+            // 驱动侧兼容旧风格名（light/dark），映射到注册表新 id
+            const styleId = { light: 'github-light', dark: 'github-dark' }[process.env.TOT_STYLE] || process.env.TOT_STYLE;
             console.log('[dev:check3]', await win.webContents.executeJavaScript(
               `new Promise((resolve) => {
                 const sel = document.querySelector('#style-select');
-                sel.value = ${JSON.stringify(process.env.TOT_STYLE)};
+                sel.value = ${JSON.stringify(styleId)};
                 sel.dispatchEvent(new Event('change'));
                 setTimeout(() => {
                   const cs = getComputedStyle(document.querySelector('#viewer'));
                   resolve(JSON.stringify({
                     bodyClass: document.body.className,
-                    ghHref: document.querySelector('#gh-style').getAttribute('href'),
-                    ghDisabled: document.querySelector('#gh-style').disabled,
+                    links: [...document.querySelectorAll('link[data-style-id]')]
+                      .map((l) => l.dataset.styleId + (l.disabled ? ':off' : ':on'))
+                      .filter((s) => s.endsWith(':on')),
+                    linkCount: document.querySelectorAll('link[data-style-id]').length,
+                    optgroups: document.querySelectorAll('#style-select optgroup').length,
+                    options: document.querySelectorAll('#style-select option').length,
                     stored: localStorage.getItem('tot-style'),
                     viewerBg: cs.backgroundColor,
                     viewerColor: cs.color,
+                    shellBg: [getComputedStyle(document.body).backgroundColor, getComputedStyle(document.querySelector('#topbar')).backgroundColor, getComputedStyle(document.querySelector('#editor')).backgroundColor, getComputedStyle(document.querySelector('#tabbar')).backgroundColor],
                   }));
                 }, 400);
               })`,
@@ -371,6 +463,10 @@ function createWindow() {
         if (process.env.TOT_EDIT) {
           const editFile = path.join(rootDir, process.env.TOT_OPEN_FILE || 'README.md');
           await new Promise((r) => setTimeout(r, 800));
+          // edit0: 预览模式下保存按钮变灰不可操作
+          console.log('[dev:edit0]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ saveDisabled: document.querySelector('#save-btn').disabled })`,
+          ));
           // edit1: 切到编辑模式
           await win.webContents.executeJavaScript(`document.querySelector('#edit-toggle').click()`);
           await new Promise((r) => setTimeout(r, 400));
@@ -380,6 +476,7 @@ function createWindow() {
               previewHidden: document.querySelector('#preview-scroll').hidden,
               editorHasText: document.querySelector('#editor').value.length > 0,
               toggleLabel: document.querySelector('#edit-toggle').textContent,
+              saveDisabled: document.querySelector('#save-btn').disabled,
               editViewerH1: document.querySelector('#edit-viewer h1')?.textContent?.slice(0, 8) ?? null,
             })`,
           ));
@@ -398,9 +495,9 @@ function createWindow() {
           console.log('[dev:edit3]', await win.webContents.executeJavaScript(
             `JSON.stringify({ rendered: document.querySelector('#edit-viewer').textContent.includes('TOT编辑测试段落') })`,
           ));
-          // edit4/5: 走菜单命令链路保存，断言磁盘真的被改
+          // edit4/5: 点保存按钮保存，断言磁盘真的被改
           const before = await fs.readFile(editFile, 'utf8');
-          win.webContents.send('menu-command', 'save');
+          await win.webContents.executeJavaScript(`document.querySelector('#save-btn').click()`);
           await new Promise((r) => setTimeout(r, 700));
           const after = await fs.readFile(editFile, 'utf8');
           console.log('[dev:edit4]', JSON.stringify({
@@ -411,6 +508,12 @@ function createWindow() {
             diskHasMarker: after.includes('TOT编辑测试段落'),
             status: await win.webContents.executeJavaScript(`document.querySelector('#save-status').textContent`),
           }));
+          // edit5b: 切回预览模式 → 保存按钮变灰不可操作
+          await win.webContents.executeJavaScript(`document.querySelector('#edit-toggle').click()`);
+          await new Promise((r) => setTimeout(r, 400));
+          console.log('[dev:edit5b]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ toggleLabel: document.querySelector('#edit-toggle').textContent, saveDisabled: document.querySelector('#save-btn').disabled })`,
+          ));
           // edit6: 经 write-file IPC 恢复原内容，测试数据零污染
           await win.webContents.executeJavaScript(
             `window.tot.writeFile(${JSON.stringify(editFile)}, ${JSON.stringify(before)})`,
@@ -506,6 +609,14 @@ function createWindow() {
         }
         if (process.env.TOT_SCREENSHOT) {
           await new Promise((r) => setTimeout(r, Number(process.env.TOT_WAIT) || 1500));
+          // TOT_STYLE 指定时先切换到该风格再截（驱动侧兼容旧风格名）
+          const styleId = { light: 'github-light', dark: 'github-dark' }[process.env.TOT_STYLE] || process.env.TOT_STYLE;
+          if (styleId) {
+            await win.webContents.executeJavaScript(
+              `{ const sel = document.querySelector('#style-select'); sel.value = ${JSON.stringify(styleId)}; sel.dispatchEvent(new Event('change')); }`,
+            );
+            await new Promise((r) => setTimeout(r, 600));
+          }
           const base = process.env.TOT_SCREENSHOT.replace(/\.png$/i, '');
           const shot1 = await win.webContents.capturePage();
           await fs.writeFile(`${base}.png`, shot1.toPNG());

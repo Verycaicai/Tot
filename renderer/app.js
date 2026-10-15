@@ -40,26 +40,79 @@ function activeScroll() {
 
 // ---------- 风格切换 ----------
 
-const GH_STYLES = { light: '../lib/github-markdown-light.css', dark: '../lib/github-markdown-dark.css' };
+// 风格注册表：每个 id 对应一个 body class + 若干 css 文件（link 惰性创建）
+const STYLES = [
+  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', files: ['../lib/github-markdown-light.css'] },
+  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', files: ['../lib/github-markdown-dark.css', 'styles/shell-github-dark.css'] },
+  { id: 'minimal', group: '极简', label: '极简', files: ['styles/minimal.css'] },
+  { id: 'rtd', group: '文档', label: 'Read the Docs', files: ['styles/rtd.css'] },
+  { id: 'notion-light', group: '文档', label: 'Notion 亮', files: ['styles/notion-light.css'] },
+  { id: 'notion-dark', group: '文档', label: 'Notion 暗', files: ['styles/notion-dark.css'] },
+  { id: 'typora-white', group: '文档', label: 'Typora White', files: ['styles/typora-white.css'] },
+  { id: 'typora-night', group: '文档', label: 'Typora Night', files: ['styles/typora-night.css'] },
+  { id: 'obsidian', group: '文档', label: 'Obsidian', files: ['styles/obsidian.css'] },
+  { id: 'dracula', group: '代码编辑器', label: 'Dracula', files: ['styles/dracula.css'] },
+  { id: 'nord', group: '代码编辑器', label: 'Nord', files: ['styles/nord.css'] },
+  { id: 'monokai', group: '代码编辑器', label: 'Monokai', files: ['styles/monokai.css'] },
+];
 
-function applyStyle() {
-  document.body.className = `style-${state.style}`;
-  $('#style-select').value = state.style;
-  // 亮/暗用 vendored 的 github-markdown-css（link 换文件）；极简卸载它、只用手写 minimal.css
-  const link = $('#gh-style');
-  if (state.style === 'minimal') link.disabled = true;
-  else {
-    link.disabled = false;
-    link.href = GH_STYLES[state.style];
+// 老版本 localStorage 存的 light/dark 迁移到新 id
+const LEGACY_STYLES = { light: 'github-light', dark: 'github-dark' };
+
+function normStyle(v) {
+  if (STYLES.some((s) => s.id === v)) return v;
+  return LEGACY_STYLES[v] || 'github-light';
+}
+
+// 惰性创建每个风格对应的 <link data-style-id>（CSP style-src file: 允许）
+function ensureStyleLinks() {
+  for (const s of STYLES) {
+    for (const file of s.files) {
+      if (!document.querySelector(`link[data-style-id="${s.id}"][href="${file}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = file;
+        link.dataset.styleId = s.id;
+        link.disabled = true;
+        document.head.append(link);
+      }
+    }
   }
-  localStorage.setItem('tot-style', state.style);
+}
+
+function applyStyle(id) {
+  ensureStyleLinks();
+  for (const s of STYLES) {
+    document.querySelectorAll(`link[data-style-id="${s.id}"]`)
+      .forEach((l) => { l.disabled = s.id !== id; });
+  }
+  document.body.className = `style-${id}`;
+  $('#style-select').value = id;
+  localStorage.setItem('tot-style', id);
+}
+
+// 由注册表生成选项分组，杜绝两份清单漂移
+{
+  const styleSelect = $('#style-select');
+  for (const group of [...new Set(STYLES.map((s) => s.group))]) {
+    const og = document.createElement('optgroup');
+    og.label = group;
+    for (const s of STYLES.filter((x) => x.group === group)) {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.label;
+      og.append(opt);
+    }
+    styleSelect.append(og);
+  }
 }
 
 $('#style-select').addEventListener('change', (e) => {
   state.style = e.target.value;
-  applyStyle();
+  applyStyle(state.style);
 });
-applyStyle();
+state.style = normStyle(state.style);
+applyStyle(state.style);
 
 // ---------- 菜单命令（主进程 File 菜单触发） ----------
 
@@ -202,6 +255,7 @@ function updateTabbar() {
   bar.textContent = '';
   bar.hidden = tabs.length === 0;
   $('#edit-toggle').disabled = !activeTab;
+  $('#save-btn').disabled = !activeTab || activeTab.mode !== 'edit';
   for (const t of tabs) {
     const el = document.createElement('div');
     el.className = 'tab' + (t === activeTab ? ' active' : '');
@@ -281,12 +335,16 @@ function showPanes(mode) {
   $('#preview-scroll').hidden = mode === 'edit';
   $('#edit-pane').hidden = mode !== 'edit';
   $('#edit-toggle').textContent = mode === 'edit' ? '预览' : '编辑';
+  $('#save-btn').disabled = mode !== 'edit'; // 预览模式下保存按钮变灰
 }
 
 $('#edit-toggle').addEventListener('click', async () => {
   if (!activeTab) return;
   await setMode(activeTab.mode === 'edit' ? 'preview' : 'edit');
 });
+
+// 编辑模式下的保存按钮（与菜单 Ctrl+S 同一路径）
+$('#save-btn').addEventListener('click', saveActiveTab);
 
 // 切换当前标签页的预览/编辑模式（互存滚动位置）
 async function setMode(mode) {

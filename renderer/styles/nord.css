@@ -1,0 +1,159 @@
+/* ===== Nord 风（暗） ===== */
+
+body.style-nord .markdown-body {
+  color: #d8dee9;
+  background: #2e3440;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+
+body.style-nord .markdown-body h1,
+body.style-nord .markdown-body h2,
+body.style-nord .markdown-body h3,
+body.style-nord .markdown-body h4,
+body.style-nord .markdown-body h5,
+body.style-nord .markdown-body h6 {
+  color: #eceff4;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6em 0 0.5em;
+}
+
+body.style-nord .markdown-body h1 { font-size: 2em; }
+body.style-nord .markdown-body h2 { font-size: 1.5em; }
+body.style-nord .markdown-body h3 { font-size: 1.25em; }
+body.style-nord .markdown-body h4 { font-size: 1.1em; }
+body.style-nord .markdown-body h5,
+body.style-nord .markdown-body h6 { font-size: 1em; color: #88c0d0; }
+
+body.style-nord .markdown-body h1 + p,
+body.style-nord .markdown-body h2 + p,
+body.style-nord .markdown-body h3 + p,
+body.style-nord .markdown-body h4 + p { margin-top: 0; }
+
+body.style-nord .markdown-body p { margin: 0 0 1em; }
+
+body.style-nord .markdown-body ul,
+body.style-nord .markdown-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+
+body.style-nord .markdown-body li + li { margin-top: 0.3em; }
+
+body.style-nord .markdown-body a { color: #88c0d0; text-decoration: none; }
+body.style-nord .markdown-body a:hover { text-decoration: underline; }
+
+body.style-nord .markdown-body blockquote {
+  margin: 0 0 1em;
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 4px solid #4c566a;
+}
+
+body.style-nord .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
+body.style-nord .markdown-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: #3b4252;
+  color: #ebcb8b;
+  border-radius: 4px;
+}
+
+body.style-nord .markdown-body pre {
+  padding: 14px;
+  margin: 0 0 1em;
+  background: #3b4252;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+body.style-nord .markdown-body pre code {
+  padding: 0;
+  background: transparent;
+  color: #d8dee9;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+
+body.style-nord .markdown-body table {
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.95em;
+}
+
+body.style-nord .markdown-body th,
+body.style-nord .markdown-body td {
+  border: 1px solid #4c566a;
+  padding: 6px 13px;
+}
+
+body.style-nord .markdown-body th { background: #3b4252; font-weight: 700; }
+
+body.style-nord .markdown-body img { max-width: 100%; }
+
+body.style-nord .markdown-body hr {
+  border: none;
+  border-top: 1px solid #4c566a;
+  margin: 2em 0;
+}
+
+/* ---- 外壳配色 ---- */
+
+body.style-nord { color: #d8dee9; background: #2e3440; }
+
+body.style-nord #topbar,
+body.style-nord #sidebar { background: #3b4252; border-color: #4c566a; }
+
+body.style-nord #edit-toggle,
+body.style-nord #save-btn,
+body.style-nord #style-select { background: #3b4252; border-color: #4c566a; color: #d8dee9; }
+
+body.style-nord #edit-toggle:hover,
+body.style-nord #save-btn:hover,
+body.style-nord #file-tree summary:hover,
+body.style-nord #file-tree a:hover,
+body.style-nord #outline a:hover { background: #434c5e; }
+
+body.style-nord #file-tree summary { color: #81a1c1; }
+
+body.style-nord #file-tree a,
+body.style-nord #outline a { color: #d8dee9; }
+
+body.style-nord #file-tree a.active,
+body.style-nord #outline a.active { background: #434c5e; color: #88c0d0; }
+
+body.style-nord #outline-box { border-color: #4c566a; }
+
+body.style-nord #content { background: #2e3440; }
+
+body.style-nord #empty { color: #81a1c1; }
+body.style-nord #empty .hint { color: #566784; }
+
+body.style-nord #tabbar { background: #3b4252; border-color: #4c566a; }
+
+body.style-nord .tab { border-color: #4c566a; color: #81a1c1; }
+body.style-nord .tab.active { background: #2e3440; color: #d8dee9; }
+
+body.style-nord .tab-close { color: #81a1c1; }
+body.style-nord .tab-close:hover { background: #434c5e; color: #d8dee9; }
+
+body.style-nord #editor { background: #2e3440; color: #d8dee9; border-color: #4c566a; }
+
+body.style-nord #save-status { color: #a3be8c; }
+body.style-nord #save-status.error { color: #bf616a; }
+
+body.style-nord #close-confirm { background: #3b4252; border-color: #4c566a; color: #d8dee9; }
+
+body.style-nord #close-confirm button { background: #3b4252; border-color: #4c566a; color: #d8dee9; }
+
+body.style-nord #searchbar { background: #3b4252; border-color: #4c566a; }
+
+body.style-nord #searchbar button { color: #d8dee9; }
+body.style-nord #searchbar button:hover { background: #434c5e; }
+
+body.style-nord mark.tot-search { background: #6b4d00; color: #d8dee9; }
+body.style-nord mark.tot-search.current { background: #d4a72c; color: #2e3440; }
+
+body.style-nord #sidebar-resizer:hover,
+body.style-nord #outline-resizer:hover { background: #4c566a; }
