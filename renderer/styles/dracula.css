@@ -158,3 +158,59 @@ body.style-dracula mark.tot-search.current { background: #d4a72c; color: #282a36
 
 body.style-dracula #sidebar-resizer:hover,
 body.style-dracula #outline-resizer:hover { background: #44475a; }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-dracula .markdown-body .hljs-keyword,
+body.style-dracula .markdown-body .hljs-selector-tag,
+body.style-dracula .markdown-body .hljs-literal,
+body.style-dracula .markdown-body .hljs-section,
+body.style-dracula .markdown-body .hljs-doctag {
+  color: #ff79c6;
+}
+
+body.style-dracula .markdown-body .hljs-string,
+body.style-dracula .markdown-body .hljs-regexp,
+body.style-dracula .markdown-body .hljs-addition,
+body.style-dracula .markdown-body .hljs-attribute,
+body.style-dracula .markdown-body .hljs-template-variable {
+  color: #f1fa8c;
+}
+
+body.style-dracula .markdown-body .hljs-number,
+body.style-dracula .markdown-body .hljs-symbol,
+body.style-dracula .markdown-body .hljs-bullet,
+body.style-dracula .markdown-body .hljs-link {
+  color: #bd93f9;
+}
+
+body.style-dracula .markdown-body .hljs-title,
+body.style-dracula .markdown-body .hljs-title.function_,
+body.style-dracula .markdown-body .hljs-title.class_,
+body.style-dracula .markdown-body .hljs-title.class_.inherited__,
+body.style-dracula .markdown-body .hljs-function .title {
+  color: #50fa7b;
+}
+
+body.style-dracula .markdown-body .hljs-comment,
+body.style-dracula .markdown-body .hljs-quote,
+body.style-dracula .markdown-body .hljs-deletion,
+body.style-dracula .markdown-body .hljs-meta {
+  color: #6272a4;
+}
+
+body.style-dracula .markdown-body .hljs-variable,
+body.style-dracula .markdown-body .hljs-type,
+body.style-dracula .markdown-body .hljs-params,
+body.style-dracula .markdown-body .hljs-built_in,
+body.style-dracula .markdown-body .hljs-attr,
+body.style-dracula .markdown-body .hljs-selector-attr,
+body.style-dracula .markdown-body .hljs-selector-id,
+body.style-dracula .markdown-body .hljs-selector-class,
+body.style-dracula .markdown-body .hljs-name,
+body.style-dracula .markdown-body .hljs-tag,
+body.style-dracula .markdown-body .hljs-subst {
+  color: #ffb86c;
+}
+

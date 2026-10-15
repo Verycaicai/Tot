@@ -158,3 +158,59 @@ body.style-obsidian mark.tot-search.current { background: #d4a72c; color: #1e1e1
 
 body.style-obsidian #sidebar-resizer:hover,
 body.style-obsidian #outline-resizer:hover { background: #333; }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-obsidian .markdown-body .hljs-keyword,
+body.style-obsidian .markdown-body .hljs-selector-tag,
+body.style-obsidian .markdown-body .hljs-literal,
+body.style-obsidian .markdown-body .hljs-section,
+body.style-obsidian .markdown-body .hljs-doctag {
+  color: #c678dd;
+}
+
+body.style-obsidian .markdown-body .hljs-string,
+body.style-obsidian .markdown-body .hljs-regexp,
+body.style-obsidian .markdown-body .hljs-addition,
+body.style-obsidian .markdown-body .hljs-attribute,
+body.style-obsidian .markdown-body .hljs-template-variable {
+  color: #98c379;
+}
+
+body.style-obsidian .markdown-body .hljs-number,
+body.style-obsidian .markdown-body .hljs-symbol,
+body.style-obsidian .markdown-body .hljs-bullet,
+body.style-obsidian .markdown-body .hljs-link {
+  color: #d19a66;
+}
+
+body.style-obsidian .markdown-body .hljs-title,
+body.style-obsidian .markdown-body .hljs-title.function_,
+body.style-obsidian .markdown-body .hljs-title.class_,
+body.style-obsidian .markdown-body .hljs-title.class_.inherited__,
+body.style-obsidian .markdown-body .hljs-function .title {
+  color: #61afef;
+}
+
+body.style-obsidian .markdown-body .hljs-comment,
+body.style-obsidian .markdown-body .hljs-quote,
+body.style-obsidian .markdown-body .hljs-deletion,
+body.style-obsidian .markdown-body .hljs-meta {
+  color: #5c6370;
+}
+
+body.style-obsidian .markdown-body .hljs-variable,
+body.style-obsidian .markdown-body .hljs-type,
+body.style-obsidian .markdown-body .hljs-params,
+body.style-obsidian .markdown-body .hljs-built_in,
+body.style-obsidian .markdown-body .hljs-attr,
+body.style-obsidian .markdown-body .hljs-selector-attr,
+body.style-obsidian .markdown-body .hljs-selector-id,
+body.style-obsidian .markdown-body .hljs-selector-class,
+body.style-obsidian .markdown-body .hljs-name,
+body.style-obsidian .markdown-body .hljs-tag,
+body.style-obsidian .markdown-body .hljs-subst {
+  color: #e06c75;
+}
+

@@ -112,3 +112,59 @@ body.style-minimal .markdown-body hr {
   border-top: 1px solid #eaecef;
   margin: 2em 0;
 }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-minimal .markdown-body .hljs-keyword,
+body.style-minimal .markdown-body .hljs-selector-tag,
+body.style-minimal .markdown-body .hljs-literal,
+body.style-minimal .markdown-body .hljs-section,
+body.style-minimal .markdown-body .hljs-doctag {
+  color: #d73a49;
+}
+
+body.style-minimal .markdown-body .hljs-string,
+body.style-minimal .markdown-body .hljs-regexp,
+body.style-minimal .markdown-body .hljs-addition,
+body.style-minimal .markdown-body .hljs-attribute,
+body.style-minimal .markdown-body .hljs-template-variable {
+  color: #032f62;
+}
+
+body.style-minimal .markdown-body .hljs-number,
+body.style-minimal .markdown-body .hljs-symbol,
+body.style-minimal .markdown-body .hljs-bullet,
+body.style-minimal .markdown-body .hljs-link {
+  color: #005cc5;
+}
+
+body.style-minimal .markdown-body .hljs-title,
+body.style-minimal .markdown-body .hljs-title.function_,
+body.style-minimal .markdown-body .hljs-title.class_,
+body.style-minimal .markdown-body .hljs-title.class_.inherited__,
+body.style-minimal .markdown-body .hljs-function .title {
+  color: #6f42c1;
+}
+
+body.style-minimal .markdown-body .hljs-comment,
+body.style-minimal .markdown-body .hljs-quote,
+body.style-minimal .markdown-body .hljs-deletion,
+body.style-minimal .markdown-body .hljs-meta {
+  color: #6a737d;
+}
+
+body.style-minimal .markdown-body .hljs-variable,
+body.style-minimal .markdown-body .hljs-type,
+body.style-minimal .markdown-body .hljs-params,
+body.style-minimal .markdown-body .hljs-built_in,
+body.style-minimal .markdown-body .hljs-attr,
+body.style-minimal .markdown-body .hljs-selector-attr,
+body.style-minimal .markdown-body .hljs-selector-id,
+body.style-minimal .markdown-body .hljs-selector-class,
+body.style-minimal .markdown-body .hljs-name,
+body.style-minimal .markdown-body .hljs-tag,
+body.style-minimal .markdown-body .hljs-subst {
+  color: #e36209;
+}
+

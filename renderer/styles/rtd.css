@@ -109,3 +109,59 @@ body.style-rtd .markdown-body hr {
   border-top: 1px solid #e1e4e5;
   margin: 2em 0;
 }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-rtd .markdown-body .hljs-keyword,
+body.style-rtd .markdown-body .hljs-selector-tag,
+body.style-rtd .markdown-body .hljs-literal,
+body.style-rtd .markdown-body .hljs-section,
+body.style-rtd .markdown-body .hljs-doctag {
+  color: #007020;
+}
+
+body.style-rtd .markdown-body .hljs-string,
+body.style-rtd .markdown-body .hljs-regexp,
+body.style-rtd .markdown-body .hljs-addition,
+body.style-rtd .markdown-body .hljs-attribute,
+body.style-rtd .markdown-body .hljs-template-variable {
+  color: #a31515;
+}
+
+body.style-rtd .markdown-body .hljs-number,
+body.style-rtd .markdown-body .hljs-symbol,
+body.style-rtd .markdown-body .hljs-bullet,
+body.style-rtd .markdown-body .hljs-link {
+  color: #098658;
+}
+
+body.style-rtd .markdown-body .hljs-title,
+body.style-rtd .markdown-body .hljs-title.function_,
+body.style-rtd .markdown-body .hljs-title.class_,
+body.style-rtd .markdown-body .hljs-title.class_.inherited__,
+body.style-rtd .markdown-body .hljs-function .title {
+  color: #795e26;
+}
+
+body.style-rtd .markdown-body .hljs-comment,
+body.style-rtd .markdown-body .hljs-quote,
+body.style-rtd .markdown-body .hljs-deletion,
+body.style-rtd .markdown-body .hljs-meta {
+  color: #6a737d;
+}
+
+body.style-rtd .markdown-body .hljs-variable,
+body.style-rtd .markdown-body .hljs-type,
+body.style-rtd .markdown-body .hljs-params,
+body.style-rtd .markdown-body .hljs-built_in,
+body.style-rtd .markdown-body .hljs-attr,
+body.style-rtd .markdown-body .hljs-selector-attr,
+body.style-rtd .markdown-body .hljs-selector-id,
+body.style-rtd .markdown-body .hljs-selector-class,
+body.style-rtd .markdown-body .hljs-name,
+body.style-rtd .markdown-body .hljs-tag,
+body.style-rtd .markdown-body .hljs-subst {
+  color: #001080;
+}
+

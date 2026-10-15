@@ -42,8 +42,8 @@ function activeScroll() {
 
 // 风格注册表：每个 id 对应一个 body class + 若干 css 文件（link 惰性创建）
 const STYLES = [
-  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', files: ['../lib/github-markdown-light.css'] },
-  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', files: ['../lib/github-markdown-dark.css', 'styles/shell-github-dark.css'] },
+  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', files: ['../lib/github-markdown-light.css', 'styles/github-light.css'] },
+  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', files: ['../lib/github-markdown-dark.css', 'styles/github-dark.css', 'styles/shell-github-dark.css'] },
   { id: 'minimal', group: '极简', label: '极简', files: ['styles/minimal.css'] },
   { id: 'rtd', group: '文档', label: 'Read the Docs', files: ['styles/rtd.css'] },
   { id: 'notion-light', group: '文档', label: 'Notion 亮', files: ['styles/notion-light.css'] },
@@ -420,6 +420,10 @@ async function renderMarkdown(targetEl, text, filePath) {
   const srcs = imgs.map((img) => img.getAttribute('src') || '');
   const resolved = await window.tot.resolveImages(filePath, srcs);
   imgs.forEach((img, i) => { img.src = resolved[i]; });
+  // 代码语法高亮（替换 code 内文本为 token span，须在 applySearch 之前）
+  if (window.hljs) {
+    targetEl.querySelectorAll('pre code').forEach((el) => { hljs.highlightElement(el); });
+  }
   assignHeadingIds(targetEl);
   applySearch();
 }

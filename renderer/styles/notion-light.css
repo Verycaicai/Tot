@@ -97,3 +97,59 @@ body.style-notion-light .markdown-body hr {
   border-top: 1px solid #e9e9e7;
   margin: 2em 0;
 }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-notion-light .markdown-body .hljs-keyword,
+body.style-notion-light .markdown-body .hljs-selector-tag,
+body.style-notion-light .markdown-body .hljs-literal,
+body.style-notion-light .markdown-body .hljs-section,
+body.style-notion-light .markdown-body .hljs-doctag {
+  color: #c7254e;
+}
+
+body.style-notion-light .markdown-body .hljs-string,
+body.style-notion-light .markdown-body .hljs-regexp,
+body.style-notion-light .markdown-body .hljs-addition,
+body.style-notion-light .markdown-body .hljs-attribute,
+body.style-notion-light .markdown-body .hljs-template-variable {
+  color: #0b6e99;
+}
+
+body.style-notion-light .markdown-body .hljs-number,
+body.style-notion-light .markdown-body .hljs-symbol,
+body.style-notion-light .markdown-body .hljs-bullet,
+body.style-notion-light .markdown-body .hljs-link {
+  color: #e76f51;
+}
+
+body.style-notion-light .markdown-body .hljs-title,
+body.style-notion-light .markdown-body .hljs-title.function_,
+body.style-notion-light .markdown-body .hljs-title.class_,
+body.style-notion-light .markdown-body .hljs-title.class_.inherited__,
+body.style-notion-light .markdown-body .hljs-function .title {
+  color: #37352f;
+}
+
+body.style-notion-light .markdown-body .hljs-comment,
+body.style-notion-light .markdown-body .hljs-quote,
+body.style-notion-light .markdown-body .hljs-deletion,
+body.style-notion-light .markdown-body .hljs-meta {
+  color: #9b9b9b;
+}
+
+body.style-notion-light .markdown-body .hljs-variable,
+body.style-notion-light .markdown-body .hljs-type,
+body.style-notion-light .markdown-body .hljs-params,
+body.style-notion-light .markdown-body .hljs-built_in,
+body.style-notion-light .markdown-body .hljs-attr,
+body.style-notion-light .markdown-body .hljs-selector-attr,
+body.style-notion-light .markdown-body .hljs-selector-id,
+body.style-notion-light .markdown-body .hljs-selector-class,
+body.style-notion-light .markdown-body .hljs-name,
+body.style-notion-light .markdown-body .hljs-tag,
+body.style-notion-light .markdown-body .hljs-subst {
+  color: #f4a261;
+}
+

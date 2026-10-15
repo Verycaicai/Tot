@@ -98,3 +98,59 @@ body.style-typora-white .markdown-body hr {
   border-top: 1px solid #e5e5e5;
   margin: 2em 0;
 }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-typora-white .markdown-body .hljs-keyword,
+body.style-typora-white .markdown-body .hljs-selector-tag,
+body.style-typora-white .markdown-body .hljs-literal,
+body.style-typora-white .markdown-body .hljs-section,
+body.style-typora-white .markdown-body .hljs-doctag {
+  color: #c7254e;
+}
+
+body.style-typora-white .markdown-body .hljs-string,
+body.style-typora-white .markdown-body .hljs-regexp,
+body.style-typora-white .markdown-body .hljs-addition,
+body.style-typora-white .markdown-body .hljs-attribute,
+body.style-typora-white .markdown-body .hljs-template-variable {
+  color: #183691;
+}
+
+body.style-typora-white .markdown-body .hljs-number,
+body.style-typora-white .markdown-body .hljs-symbol,
+body.style-typora-white .markdown-body .hljs-bullet,
+body.style-typora-white .markdown-body .hljs-link {
+  color: #0086b3;
+}
+
+body.style-typora-white .markdown-body .hljs-title,
+body.style-typora-white .markdown-body .hljs-title.function_,
+body.style-typora-white .markdown-body .hljs-title.class_,
+body.style-typora-white .markdown-body .hljs-title.class_.inherited__,
+body.style-typora-white .markdown-body .hljs-function .title {
+  color: #795e26;
+}
+
+body.style-typora-white .markdown-body .hljs-comment,
+body.style-typora-white .markdown-body .hljs-quote,
+body.style-typora-white .markdown-body .hljs-deletion,
+body.style-typora-white .markdown-body .hljs-meta {
+  color: #969896;
+}
+
+body.style-typora-white .markdown-body .hljs-variable,
+body.style-typora-white .markdown-body .hljs-type,
+body.style-typora-white .markdown-body .hljs-params,
+body.style-typora-white .markdown-body .hljs-built_in,
+body.style-typora-white .markdown-body .hljs-attr,
+body.style-typora-white .markdown-body .hljs-selector-attr,
+body.style-typora-white .markdown-body .hljs-selector-id,
+body.style-typora-white .markdown-body .hljs-selector-class,
+body.style-typora-white .markdown-body .hljs-name,
+body.style-typora-white .markdown-body .hljs-tag,
+body.style-typora-white .markdown-body .hljs-subst {
+  color: #e36209;
+}
+

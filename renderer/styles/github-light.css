@@ -1,0 +1,56 @@
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-github-light .markdown-body .hljs-keyword,
+body.style-github-light .markdown-body .hljs-selector-tag,
+body.style-github-light .markdown-body .hljs-literal,
+body.style-github-light .markdown-body .hljs-section,
+body.style-github-light .markdown-body .hljs-doctag {
+  color: #cf222e;
+}
+
+body.style-github-light .markdown-body .hljs-string,
+body.style-github-light .markdown-body .hljs-regexp,
+body.style-github-light .markdown-body .hljs-addition,
+body.style-github-light .markdown-body .hljs-attribute,
+body.style-github-light .markdown-body .hljs-template-variable {
+  color: #0a3069;
+}
+
+body.style-github-light .markdown-body .hljs-number,
+body.style-github-light .markdown-body .hljs-symbol,
+body.style-github-light .markdown-body .hljs-bullet,
+body.style-github-light .markdown-body .hljs-link {
+  color: #0550ae;
+}
+
+body.style-github-light .markdown-body .hljs-title,
+body.style-github-light .markdown-body .hljs-title.function_,
+body.style-github-light .markdown-body .hljs-title.class_,
+body.style-github-light .markdown-body .hljs-title.class_.inherited__,
+body.style-github-light .markdown-body .hljs-function .title {
+  color: #8250df;
+}
+
+body.style-github-light .markdown-body .hljs-comment,
+body.style-github-light .markdown-body .hljs-quote,
+body.style-github-light .markdown-body .hljs-deletion,
+body.style-github-light .markdown-body .hljs-meta {
+  color: #6e7781;
+}
+
+body.style-github-light .markdown-body .hljs-variable,
+body.style-github-light .markdown-body .hljs-type,
+body.style-github-light .markdown-body .hljs-params,
+body.style-github-light .markdown-body .hljs-built_in,
+body.style-github-light .markdown-body .hljs-attr,
+body.style-github-light .markdown-body .hljs-selector-attr,
+body.style-github-light .markdown-body .hljs-selector-id,
+body.style-github-light .markdown-body .hljs-selector-class,
+body.style-github-light .markdown-body .hljs-name,
+body.style-github-light .markdown-body .hljs-tag,
+body.style-github-light .markdown-body .hljs-subst {
+  color: #953800;
+}
+

@@ -157,3 +157,59 @@ body.style-notion-dark mark.tot-search.current { background: #d4a72c; color: #19
 
 body.style-notion-dark #sidebar-resizer:hover,
 body.style-notion-dark #outline-resizer:hover { background: #303030; }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-notion-dark .markdown-body .hljs-keyword,
+body.style-notion-dark .markdown-body .hljs-selector-tag,
+body.style-notion-dark .markdown-body .hljs-literal,
+body.style-notion-dark .markdown-body .hljs-section,
+body.style-notion-dark .markdown-body .hljs-doctag {
+  color: #ff8f80;
+}
+
+body.style-notion-dark .markdown-body .hljs-string,
+body.style-notion-dark .markdown-body .hljs-regexp,
+body.style-notion-dark .markdown-body .hljs-addition,
+body.style-notion-dark .markdown-body .hljs-attribute,
+body.style-notion-dark .markdown-body .hljs-template-variable {
+  color: #8ecae6;
+}
+
+body.style-notion-dark .markdown-body .hljs-number,
+body.style-notion-dark .markdown-body .hljs-symbol,
+body.style-notion-dark .markdown-body .hljs-bullet,
+body.style-notion-dark .markdown-body .hljs-link {
+  color: #ffb703;
+}
+
+body.style-notion-dark .markdown-body .hljs-title,
+body.style-notion-dark .markdown-body .hljs-title.function_,
+body.style-notion-dark .markdown-body .hljs-title.class_,
+body.style-notion-dark .markdown-body .hljs-title.class_.inherited__,
+body.style-notion-dark .markdown-body .hljs-function .title {
+  color: #e0e0e0;
+}
+
+body.style-notion-dark .markdown-body .hljs-comment,
+body.style-notion-dark .markdown-body .hljs-quote,
+body.style-notion-dark .markdown-body .hljs-deletion,
+body.style-notion-dark .markdown-body .hljs-meta {
+  color: #8a8a8a;
+}
+
+body.style-notion-dark .markdown-body .hljs-variable,
+body.style-notion-dark .markdown-body .hljs-type,
+body.style-notion-dark .markdown-body .hljs-params,
+body.style-notion-dark .markdown-body .hljs-built_in,
+body.style-notion-dark .markdown-body .hljs-attr,
+body.style-notion-dark .markdown-body .hljs-selector-attr,
+body.style-notion-dark .markdown-body .hljs-selector-id,
+body.style-notion-dark .markdown-body .hljs-selector-class,
+body.style-notion-dark .markdown-body .hljs-name,
+body.style-notion-dark .markdown-body .hljs-tag,
+body.style-notion-dark .markdown-body .hljs-subst {
+  color: #ffd166;
+}
+

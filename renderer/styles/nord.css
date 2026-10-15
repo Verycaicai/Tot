@@ -157,3 +157,59 @@ body.style-nord mark.tot-search.current { background: #d4a72c; color: #2e3440; }
 
 body.style-nord #sidebar-resizer:hover,
 body.style-nord #outline-resizer:hover { background: #4c566a; }
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-nord .markdown-body .hljs-keyword,
+body.style-nord .markdown-body .hljs-selector-tag,
+body.style-nord .markdown-body .hljs-literal,
+body.style-nord .markdown-body .hljs-section,
+body.style-nord .markdown-body .hljs-doctag {
+  color: #81a1c1;
+}
+
+body.style-nord .markdown-body .hljs-string,
+body.style-nord .markdown-body .hljs-regexp,
+body.style-nord .markdown-body .hljs-addition,
+body.style-nord .markdown-body .hljs-attribute,
+body.style-nord .markdown-body .hljs-template-variable {
+  color: #a3be8c;
+}
+
+body.style-nord .markdown-body .hljs-number,
+body.style-nord .markdown-body .hljs-symbol,
+body.style-nord .markdown-body .hljs-bullet,
+body.style-nord .markdown-body .hljs-link {
+  color: #b48ead;
+}
+
+body.style-nord .markdown-body .hljs-title,
+body.style-nord .markdown-body .hljs-title.function_,
+body.style-nord .markdown-body .hljs-title.class_,
+body.style-nord .markdown-body .hljs-title.class_.inherited__,
+body.style-nord .markdown-body .hljs-function .title {
+  color: #8fbcbb;
+}
+
+body.style-nord .markdown-body .hljs-comment,
+body.style-nord .markdown-body .hljs-quote,
+body.style-nord .markdown-body .hljs-deletion,
+body.style-nord .markdown-body .hljs-meta {
+  color: #7b88a1;
+}
+
+body.style-nord .markdown-body .hljs-variable,
+body.style-nord .markdown-body .hljs-type,
+body.style-nord .markdown-body .hljs-params,
+body.style-nord .markdown-body .hljs-built_in,
+body.style-nord .markdown-body .hljs-attr,
+body.style-nord .markdown-body .hljs-selector-attr,
+body.style-nord .markdown-body .hljs-selector-id,
+body.style-nord .markdown-body .hljs-selector-class,
+body.style-nord .markdown-body .hljs-name,
+body.style-nord .markdown-body .hljs-tag,
+body.style-nord .markdown-body .hljs-subst {
+  color: #d08770;
+}
+

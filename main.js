@@ -332,6 +332,7 @@ function createWindow() {
             headings: [...document.querySelectorAll('#viewer h1,h2,h3,h4,h5,h6')].map((h) => h.id + ':' + h.tagName + ':' + h.textContent.slice(0, 12)),
             table: !!document.querySelector('#viewer table'),
             pre: !!document.querySelector('#viewer pre code'),
+            hljsSpans: document.querySelectorAll('#viewer pre code .hljs-keyword, #viewer pre code .hljs-string, #viewer pre code .hljs-comment').length,
             imgSrc: document.querySelector('#viewer img')?.getAttribute('src') ?? null,
             imgLoaded: (() => { const i = document.querySelector('#viewer img'); return i ? i.naturalWidth > 0 : null; })(),
             outline: [...document.querySelectorAll('#outline a')].map((a) => a.getAttribute('href')),

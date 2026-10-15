@@ -1,0 +1,56 @@
+
+
+/* ---- 代码语法高亮（highlight.js token 配色） ---- */
+
+body.style-github-dark .markdown-body .hljs-keyword,
+body.style-github-dark .markdown-body .hljs-selector-tag,
+body.style-github-dark .markdown-body .hljs-literal,
+body.style-github-dark .markdown-body .hljs-section,
+body.style-github-dark .markdown-body .hljs-doctag {
+  color: #ff7b72;
+}
+
+body.style-github-dark .markdown-body .hljs-string,
+body.style-github-dark .markdown-body .hljs-regexp,
+body.style-github-dark .markdown-body .hljs-addition,
+body.style-github-dark .markdown-body .hljs-attribute,
+body.style-github-dark .markdown-body .hljs-template-variable {
+  color: #a5d6ff;
+}
+
+body.style-github-dark .markdown-body .hljs-number,
+body.style-github-dark .markdown-body .hljs-symbol,
+body.style-github-dark .markdown-body .hljs-bullet,
+body.style-github-dark .markdown-body .hljs-link {
+  color: #79c0ff;
+}
+
+body.style-github-dark .markdown-body .hljs-title,
+body.style-github-dark .markdown-body .hljs-title.function_,
+body.style-github-dark .markdown-body .hljs-title.class_,
+body.style-github-dark .markdown-body .hljs-title.class_.inherited__,
+body.style-github-dark .markdown-body .hljs-function .title {
+  color: #d2a8ff;
+}
+
+body.style-github-dark .markdown-body .hljs-comment,
+body.style-github-dark .markdown-body .hljs-quote,
+body.style-github-dark .markdown-body .hljs-deletion,
+body.style-github-dark .markdown-body .hljs-meta {
+  color: #8b949e;
+}
+
+body.style-github-dark .markdown-body .hljs-variable,
+body.style-github-dark .markdown-body .hljs-type,
+body.style-github-dark .markdown-body .hljs-params,
+body.style-github-dark .markdown-body .hljs-built_in,
+body.style-github-dark .markdown-body .hljs-attr,
+body.style-github-dark .markdown-body .hljs-selector-attr,
+body.style-github-dark .markdown-body .hljs-selector-id,
+body.style-github-dark .markdown-body .hljs-selector-class,
+body.style-github-dark .markdown-body .hljs-name,
+body.style-github-dark .markdown-body .hljs-tag,
+body.style-github-dark .markdown-body .hljs-subst {
+  color: #ffa657;
+}
+
