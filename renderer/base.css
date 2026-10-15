@@ -1,0 +1,222 @@
+/* ===== 应用外壳：布局 + 控件（与正文渲染风格无关的部分） ===== */
+
+* { box-sizing: border-box; }
+
+/* 保证 hidden 属性永远生效（不被其他 display 规则覆盖） */
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font: 14px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #1f2328;
+  background: #fff;
+}
+
+/* ---- 顶栏 ---- */
+
+#topbar {
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: #f6f8fa;
+  border-bottom: 1px solid #d1d9e0;
+}
+
+#app-title { font-weight: 600; font-size: 15px; }
+
+#controls { display: flex; align-items: center; gap: 10px; }
+
+#open-dir {
+  padding: 6px 14px;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2328;
+  cursor: pointer;
+  font: inherit;
+}
+
+#open-dir:hover { background: #eef1f4; }
+
+#style-select {
+  padding: 6px 8px;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2328;
+  font: inherit;
+}
+
+/* ---- 主体 ---- */
+
+#main { flex: 1; display: flex; min-height: 0; }
+
+#sidebar {
+  width: 300px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #f6f8fa;
+  border-right: 1px solid #d1d9e0;
+}
+
+#content {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+  background: #fff;
+}
+
+/* ---- 文件树 ---- */
+
+#file-tree { flex: 1; overflow-y: auto; padding: 8px 4px; }
+
+#file-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 16px;
+}
+
+#file-tree > ul { padding-left: 4px; }
+
+#file-tree summary {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #57606a;
+  user-select: none;
+}
+
+#file-tree summary:hover { background: #eaeef2; }
+
+#file-tree summary::marker { color: #8c959f; }
+
+#file-tree a {
+  display: block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #1f2328;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#file-tree a:hover { background: #eaeef2; }
+
+#file-tree a.active { background: #ddf4ff; color: #0969da; font-weight: 600; }
+
+#file-tree .tree-empty { padding: 12px 10px; color: #8c959f; }
+
+/* ---- 大纲 ---- */
+
+#outline-box {
+  height: 40%;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #d1d9e0;
+  min-height: 120px;
+}
+
+#outline-title {
+  flex: none;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #8c959f;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#outline { list-style: none; margin: 0; padding: 0 6px 10px; overflow-y: auto; }
+
+#outline a {
+  display: block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #1f2328;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#outline a:hover { background: #eaeef2; }
+
+#outline a.active { background: #ddf4ff; color: #0969da; }
+
+#outline .level-1 a { font-weight: 600; }
+#outline .level-2 a { padding-left: 22px; }
+#outline .level-3 a { padding-left: 36px; }
+#outline .level-4 a { padding-left: 50px; }
+#outline .level-5 a { padding-left: 64px; }
+#outline .level-6 a { padding-left: 78px; }
+
+/* ---- 正文区 ---- */
+
+#content #viewer {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px 48px 96px;
+}
+
+#empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #57606a;
+  gap: 4px;
+}
+
+#empty .hint { font-size: 13px; color: #8c959f; }
+
+/* ---- GitHub 暗色风格下的外壳配色 ---- */
+
+body.style-dark {
+  color: #e6edf3;
+  background: #0d1117;
+}
+
+body.style-dark #topbar,
+body.style-dark #sidebar {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+body.style-dark #open-dir,
+body.style-dark #style-select {
+  background: #21262d;
+  border-color: #30363d;
+  color: #e6edf3;
+}
+
+body.style-dark #open-dir:hover,
+body.style-dark #file-tree summary:hover,
+body.style-dark #file-tree a:hover,
+body.style-dark #outline a:hover { background: #21262d; }
+
+body.style-dark #file-tree summary { color: #8b949e; }
+
+body.style-dark #file-tree a,
+body.style-dark #outline a { color: #e6edf3; }
+
+body.style-dark #file-tree a.active,
+body.style-dark #outline a.active { background: #1f6feb33; color: #58a6ff; }
+
+body.style-dark #outline-box { border-color: #30363d; }
+
+body.style-dark #content { background: #0d1117; }
+
+body.style-dark #empty { color: #8b949e; }
+body.style-dark #empty .hint { color: #484f58; }

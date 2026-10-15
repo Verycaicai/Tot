@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: mdfile: data:; font-src file: data:">
+  <title>Tot — Trail of Tears</title>
+  <link rel="stylesheet" href="base.css">
+  <link id="gh-style" rel="stylesheet" href="../lib/github-markdown-light.css">
+  <link rel="stylesheet" href="styles/minimal.css">
+</head>
+<body class="style-light">
+
+  <header id="topbar">
+    <span id="app-title">Tot — Trail of Tears</span>
+    <div id="controls">
+      <button id="open-dir">打开目录</button>
+      <select id="style-select" title="渲染风格">
+        <option value="light">GitHub 亮</option>
+        <option value="dark">GitHub 暗</option>
+        <option value="minimal">极简</option>
+      </select>
+    </div>
+  </header>
+
+  <div id="main">
+    <aside id="sidebar">
+      <nav id="file-tree"></nav>
+      <div id="outline-box" hidden>
+        <div id="outline-title">大纲</div>
+        <ul id="outline"></ul>
+      </div>
+    </aside>
+    <article id="content">
+      <div id="empty">
+        <p>还没有打开目录</p>
+        <p class="hint">点击左上角「打开目录」，选择包含 Markdown 文件的文件夹</p>
+      </div>
+      <div id="viewer" class="markdown-body" hidden></div>
+    </article>
+  </div>
+
+  <script src="../lib/marked.umd.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
