@@ -1,0 +1,31 @@
+/* ===== Callout 标注块（暗色版，7 套暗色风格共用，rgba 半透明底） ===== */
+
+body[class] .markdown-body .callout-note {
+  border-color: rgba(88, 166, 255, 0.5);
+  background: rgba(88, 166, 255, 0.15);
+}
+body[class] .markdown-body .callout-note .callout-title { color: #58a6ff; }
+
+body[class] .markdown-body .callout-tip {
+  border-color: rgba(63, 185, 80, 0.5);
+  background: rgba(63, 185, 80, 0.15);
+}
+body[class] .markdown-body .callout-tip .callout-title { color: #3fb950; }
+
+body[class] .markdown-body .callout-important {
+  border-color: rgba(210, 168, 255, 0.5);
+  background: rgba(210, 168, 255, 0.15);
+}
+body[class] .markdown-body .callout-important .callout-title { color: #d2a8ff; }
+
+body[class] .markdown-body .callout-warning {
+  border-color: rgba(210, 153, 34, 0.5);
+  background: rgba(210, 153, 34, 0.15);
+}
+body[class] .markdown-body .callout-warning .callout-title { color: #d29922; }
+
+body[class] .markdown-body .callout-caution {
+  border-color: rgba(248, 81, 73, 0.5);
+  background: rgba(248, 81, 73, 0.15);
+}
+body[class] .markdown-body .callout-caution .callout-title { color: #f85149; }

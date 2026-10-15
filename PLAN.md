@@ -14,7 +14,7 @@
 4. 搜索：Ctrl+F 文件内查找，高亮/计数/上下跳转，重渲染后自动重应用
 5. 拖拽：文件夹导航与大纲框可拖动大小（sidebar 200–600px / outline 120–600px clamp）
 6. 重启自动恢复上次目录（userData/config.json）
-7. 12 套渲染风格切换生效 + localStorage 持久化 + 暗色外壳无亮色残块 + 代码块 highlight.js 语法高亮（每套风格独立 token 配色）
+7. 12 套渲染风格切换生效 + localStorage 持久化 + 暗色外壳无亮色残块 + 代码块 highlight.js 语法高亮（每套风格独立 token 配色）+ Callout 标注块（`> [!NOTE]` 等 5 类）+ 代码块底色与风格背景对比明显
 8. 全量自动化断言通过、测试数据零污染、打包 exe 干净目录双击可用、代码推送 GitHub
 
 ## 技术选型
@@ -73,6 +73,12 @@ md-browser/
 
 - `marked.parse()` 套 `markdown-body` + 当前风格 class；覆盖 html renderer 转义原始 HTML；图片相对路径改写为 mdfile://
 - 标题 slugify + 序号去重 → 大纲缩进列表；IntersectionObserver scrollspy（root 随预览/编辑模式切换）；点击跳转
+- 渲染管线顺序：parse → fixImages → hljs 高亮 → callout 转换 → headingIds → applySearch
+
+### Callout 标注块
+
+- blockquote 首段 `[!NOTE/TIP/IMPORTANT/WARNING/CAUTION]` 转 `.callout.callout-<type>`：彩色标题行（emoji + 中文标签）+ rgba 半透明底 + 主题色边框
+- 亮色 5 套共用 styles/callouts.css，暗色 7 套共用 styles/callouts-dark.css（rgba 底在任何风格背景上自然融合）；选择器 `body[class]`（属性选择器 = 类级特异性）压过各风格 blockquote 规则
 
 ### 风格注册表（12 套）
 
@@ -101,7 +107,7 @@ md-browser/
 - **M8 双栏实时预览编辑 + 保存** — ✅ [dev:edit1-7]：双栏、dirty、debounce、磁盘写入+复原零污染、越界拒写
 - **M9 文件内查找** — ✅ [dev:search1-4]：3 匹配、计数、上下跳转、编辑右栏重应用、Esc 清除
 - **M10 面板拖拽** — ✅ [dev:drag1-4]：宽度/上下限 clamp/outline 高度
-- **M11 12 套风格 + 菜单扩展 + 保存按钮 + 语法高亮** — ✅ [dev:check3] 12 套逐一断言（body class、唯一 enabled link、optgroup=4、options=12、localStorage、正文与外壳计算样式），24 张截图目检；[dev:edit0/5b] 保存按钮灰/可用态；[dev:check1] hljsSpans 断言 token span 生成
+- **M11 12 套风格 + 菜单扩展 + 保存按钮 + 语法高亮 + Callout** — ✅ [dev:check3] 12 套逐一断言（body class、唯一 enabled link、optgroup=4、options=12、localStorage、正文与外壳计算样式、pre 底色、callout 配色），24 张截图目检；[dev:edit0/5b] 保存按钮灰/可用态；[dev:check1] hljsSpans 断言 token span 生成、callouts 断言 5 类标注块与中文标题
 - **M12 收尾** — 本版最终验证 + 1.1.0 打包 + 推送
 
 ## 已知限制（1.1）

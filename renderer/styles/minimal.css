@@ -77,7 +77,8 @@ body.style-minimal .markdown-body code {
 body.style-minimal .markdown-body pre {
   padding: 14px 16px;
   margin: 0 0 1em;
-  background: #f6f8fa;
+  background: #eef1f4;
+  border: 1px solid #d8dee4;
   border-radius: 6px;
   overflow-x: auto;
 }

@@ -62,7 +62,8 @@ body.style-notion-light .markdown-body code {
 body.style-notion-light .markdown-body pre {
   padding: 16px;
   margin: 0 0 1em;
-  background: #f7f6f3;
+  background: #eae9e5;
+  border: 1px solid rgba(135, 131, 120, 0.25);
   border-radius: 4px;
   overflow-x: auto;
 }

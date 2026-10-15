@@ -54,3 +54,10 @@ body.style-github-dark .markdown-body .hljs-subst {
   color: #ffa657;
 }
 
+
+/* ---- 代码块背景加深（加边框，与正文背景拉开） ---- */
+
+body.style-github-dark .markdown-body pre {
+  background: #161b22;
+  border: 1px solid #30363d;
+}

@@ -1,0 +1,49 @@
+/* ===== Callout 标注块（亮色基础，5 套亮色风格共用） =====
+   选择器用 body[class]（属性 = 类级特异性），压过各风格的 blockquote 规则 */
+
+body[class] .markdown-body .callout {
+  margin: 0 0 1em;
+  padding: 0.55em 1em 0.55em 0.9em;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 6px;
+}
+
+body[class] .markdown-body .callout > :last-child { margin-bottom: 0; }
+
+body[class] .markdown-body .callout-title {
+  font-weight: 700;
+  margin-bottom: 0.35em;
+}
+
+/* 五类主题色（GitHub 官方 callout 色系） */
+
+body[class] .markdown-body .callout-note {
+  border-color: rgba(9, 105, 218, 0.4);
+  background: rgba(9, 105, 218, 0.07);
+}
+body[class] .markdown-body .callout-note .callout-title { color: #0969da; }
+
+body[class] .markdown-body .callout-tip {
+  border-color: rgba(26, 127, 55, 0.4);
+  background: rgba(26, 127, 55, 0.07);
+}
+body[class] .markdown-body .callout-tip .callout-title { color: #1a7f37; }
+
+body[class] .markdown-body .callout-important {
+  border-color: rgba(130, 80, 223, 0.4);
+  background: rgba(130, 80, 223, 0.07);
+}
+body[class] .markdown-body .callout-important .callout-title { color: #8250df; }
+
+body[class] .markdown-body .callout-warning {
+  border-color: rgba(154, 103, 0, 0.4);
+  background: rgba(154, 103, 0, 0.07);
+}
+body[class] .markdown-body .callout-warning .callout-title { color: #9a6700; }
+
+body[class] .markdown-body .callout-caution {
+  border-color: rgba(207, 34, 46, 0.4);
+  background: rgba(207, 34, 46, 0.07);
+}
+body[class] .markdown-body .callout-caution .callout-title { color: #cf222e; }

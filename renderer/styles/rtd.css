@@ -73,8 +73,8 @@ body.style-rtd .markdown-body code {
 body.style-rtd .markdown-body pre {
   padding: 12px 14px;
   margin: 0 0 1em;
-  background: #f8f8f8;
-  border: 1px solid #e1e4e5;
+  background: #eceff2;
+  border: 1px solid #d5dce2;
   overflow-x: auto;
 }
 

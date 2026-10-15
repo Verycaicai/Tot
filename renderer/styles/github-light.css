@@ -54,3 +54,10 @@ body.style-github-light .markdown-body .hljs-subst {
   color: #953800;
 }
 
+
+/* ---- 代码块背景加深（覆盖 vendored 主题的浅底色） ---- */
+
+body.style-github-light .markdown-body pre {
+  background: #eef1f4;
+  border: 1px solid #d8dee4;
+}

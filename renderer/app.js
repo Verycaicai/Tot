@@ -42,18 +42,18 @@ function activeScroll() {
 
 // 风格注册表：每个 id 对应一个 body class + 若干 css 文件（link 惰性创建）
 const STYLES = [
-  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', files: ['../lib/github-markdown-light.css', 'styles/github-light.css'] },
-  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', files: ['../lib/github-markdown-dark.css', 'styles/github-dark.css', 'styles/shell-github-dark.css'] },
-  { id: 'minimal', group: '极简', label: '极简', files: ['styles/minimal.css'] },
-  { id: 'rtd', group: '文档', label: 'Read the Docs', files: ['styles/rtd.css'] },
-  { id: 'notion-light', group: '文档', label: 'Notion 亮', files: ['styles/notion-light.css'] },
-  { id: 'notion-dark', group: '文档', label: 'Notion 暗', files: ['styles/notion-dark.css'] },
-  { id: 'typora-white', group: '文档', label: 'Typora White', files: ['styles/typora-white.css'] },
-  { id: 'typora-night', group: '文档', label: 'Typora Night', files: ['styles/typora-night.css'] },
-  { id: 'obsidian', group: '文档', label: 'Obsidian', files: ['styles/obsidian.css'] },
-  { id: 'dracula', group: '代码编辑器', label: 'Dracula', files: ['styles/dracula.css'] },
-  { id: 'nord', group: '代码编辑器', label: 'Nord', files: ['styles/nord.css'] },
-  { id: 'monokai', group: '代码编辑器', label: 'Monokai', files: ['styles/monokai.css'] },
+  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', files: ['../lib/github-markdown-light.css', 'styles/github-light.css', 'styles/callouts.css'] },
+  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', files: ['../lib/github-markdown-dark.css', 'styles/github-dark.css', 'styles/callouts-dark.css', 'styles/shell-github-dark.css'] },
+  { id: 'minimal', group: '极简', label: '极简', files: ['styles/minimal.css', 'styles/callouts.css'] },
+  { id: 'rtd', group: '文档', label: 'Read the Docs', files: ['styles/rtd.css', 'styles/callouts.css'] },
+  { id: 'notion-light', group: '文档', label: 'Notion 亮', files: ['styles/notion-light.css', 'styles/callouts.css'] },
+  { id: 'notion-dark', group: '文档', label: 'Notion 暗', files: ['styles/notion-dark.css', 'styles/callouts-dark.css'] },
+  { id: 'typora-white', group: '文档', label: 'Typora White', files: ['styles/typora-white.css', 'styles/callouts.css'] },
+  { id: 'typora-night', group: '文档', label: 'Typora Night', files: ['styles/typora-night.css', 'styles/callouts-dark.css'] },
+  { id: 'obsidian', group: '文档', label: 'Obsidian', files: ['styles/obsidian.css', 'styles/callouts-dark.css'] },
+  { id: 'dracula', group: '代码编辑器', label: 'Dracula', files: ['styles/dracula.css', 'styles/callouts-dark.css'] },
+  { id: 'nord', group: '代码编辑器', label: 'Nord', files: ['styles/nord.css', 'styles/callouts-dark.css'] },
+  { id: 'monokai', group: '代码编辑器', label: 'Monokai', files: ['styles/monokai.css', 'styles/callouts-dark.css'] },
 ];
 
 // 老版本 localStorage 存的 light/dark 迁移到新 id
@@ -424,8 +424,42 @@ async function renderMarkdown(targetEl, text, filePath) {
   if (window.hljs) {
     targetEl.querySelectorAll('pre code').forEach((el) => { hljs.highlightElement(el); });
   }
+  applyCallouts(targetEl);
   assignHeadingIds(targetEl);
   applySearch();
+}
+
+// ---------- Callout 标注块（> [!NOTE] 等） ----------
+
+const CALLOUT_TYPES = {
+  NOTE: { label: '注', icon: 'ℹ️' },
+  TIP: { label: '提示', icon: '💡' },
+  IMPORTANT: { label: '重要', icon: '📌' },
+  WARNING: { label: '警告', icon: '⚠️' },
+  CAUTION: { label: '注意', icon: '🚨' },
+};
+
+// GitHub 风格 Callout：blockquote 首行 [!TYPE] 转为标注块（彩色标题行 + 底色）
+function applyCallouts(targetEl) {
+  targetEl.querySelectorAll('blockquote').forEach((bq) => {
+    const p = bq.firstElementChild;
+    if (!p || p.tagName !== 'P') return;
+    const m = p.textContent.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i);
+    if (!m) return;
+    const type = m[1].toUpperCase();
+    const meta = CALLOUT_TYPES[type];
+    bq.classList.add('callout', 'callout-' + type.toLowerCase());
+    const title = document.createElement('div');
+    title.className = 'callout-title';
+    title.textContent = `${meta.icon} ${meta.label}`;
+    bq.insertBefore(title, bq.firstChild);
+    // 去掉首段开头的 [!TYPE] 标记；标题行已单独渲染
+    const node = p.firstChild;
+    if (node && node.nodeType === Node.TEXT_NODE) {
+      node.textContent = node.textContent.replace(/^\s*\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+    }
+    if (!p.textContent.trim()) p.remove();
+  });
 }
 
 // ---------- 文件内查找（Ctrl+F） ----------

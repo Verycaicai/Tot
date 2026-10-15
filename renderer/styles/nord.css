@@ -63,7 +63,8 @@ body.style-nord .markdown-body code {
 body.style-nord .markdown-body pre {
   padding: 14px;
   margin: 0 0 1em;
-  background: #3b4252;
+  background: #434c5e;
+  border: 1px solid #4c566a;
   border-radius: 4px;
   overflow-x: auto;
 }

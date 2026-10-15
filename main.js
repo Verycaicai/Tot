@@ -333,6 +333,8 @@ function createWindow() {
             table: !!document.querySelector('#viewer table'),
             pre: !!document.querySelector('#viewer pre code'),
             hljsSpans: document.querySelectorAll('#viewer pre code .hljs-keyword, #viewer pre code .hljs-string, #viewer pre code .hljs-comment').length,
+            callouts: [...document.querySelectorAll('#viewer .callout')].map((c) => c.className),
+            calloutTitles: [...document.querySelectorAll('#viewer .callout-title')].map((t) => t.textContent),
             imgSrc: document.querySelector('#viewer img')?.getAttribute('src') ?? null,
             imgLoaded: (() => { const i = document.querySelector('#viewer img'); return i ? i.naturalWidth > 0 : null; })(),
             outline: [...document.querySelectorAll('#outline a')].map((a) => a.getAttribute('href')),
@@ -376,6 +378,8 @@ function createWindow() {
                     viewerBg: cs.backgroundColor,
                     viewerColor: cs.color,
                     shellBg: [getComputedStyle(document.body).backgroundColor, getComputedStyle(document.querySelector('#topbar')).backgroundColor, getComputedStyle(document.querySelector('#editor')).backgroundColor, getComputedStyle(document.querySelector('#tabbar')).backgroundColor],
+                    preStyle: (() => { const p = getComputedStyle(document.querySelector('#viewer pre')); return { bg: p.backgroundColor, border: p.borderTopColor }; })(),
+                    calloutStyle: (() => { const c = getComputedStyle(document.querySelector('#viewer .callout-note')); const t = getComputedStyle(document.querySelector('#viewer .callout-note .callout-title')); return { bg: c.backgroundColor, border: c.borderLeftColor, title: t.color }; })(),
                   }));
                 }, 400);
               })`,
@@ -623,7 +627,7 @@ function createWindow() {
           await fs.writeFile(`${base}.png`, shot1.toPNG());
           console.log(`[dev] screenshot saved: ${base}.png`);
           await win.webContents.executeJavaScript(
-            `document.querySelectorAll('#viewer h3')[1]?.scrollIntoView({ block: 'start' })`,
+            `(document.querySelector('#viewer .callout') || document.querySelectorAll('#viewer h3')[1])?.scrollIntoView({ block: 'center' })`,
           );
           await new Promise((r) => setTimeout(r, 900));
           const shot2 = await win.webContents.capturePage();
