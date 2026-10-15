@@ -8,8 +8,8 @@ Electron + 原生 JavaScript，无前端框架、无构建工具，离线可用�
 
 最新版本：[Releases](https://github.com/Verycaicai/Tot/releases)
 
-- **Tot 1.1.0.exe** — 便携版，双击即用，无需安装
-- **Tot Setup 1.1.0.exe** — 安装版
+- **Tot 1.1.1.exe** — 便携版，双击即用，无需安装
+- **Tot Setup 1.1.1.exe** — 安装版
 
 ## 功能
 
@@ -24,6 +24,7 @@ Electron + 原生 JavaScript，无前端框架、无构建工具，离线可用�
 - **Callout 标注块**：`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]` / `[!WARNING]` / `[!CAUTION]`
 - **本地图片**：md 内相对路径图片正常显示（`mdfile://` 协议，路径限制在已浏览的目录内）
 - **最近打开**：文件菜单下的「最近打开」索引最近三个文件，点击即在树中定位并打开
+- **双击打开**：Windows 设置里把 .md 关联到 Tot 后，双击 .md 文件直接打开（已运行时自动转到现有窗口）
 
 ## 使用
 

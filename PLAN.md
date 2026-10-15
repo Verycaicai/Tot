@@ -126,7 +126,8 @@ md-browser/
 - 大纲高度分隔条移除（面板互斥后两栏不再同显，高度拖拽失去意义）；侧栏宽度拖拽 + 持久化保留（localStorage `tot-panels`）
 - 面板标题条折叠三角 11px → 22px（标签条高度收紧）；文件标签页顶部圆角 8px 8px 0 0
 - 最近打开的文件若已被删除：点击时自动从索引移除并在状态栏提示（openByPath fs.access 预检 + open-file-error 推送；渲染层 readFile 失败兜底）
-- 验证：[dev:panels1-6] 状态断言（互斥/聚焦/dirHidden/pathHidden/treeDirs）+ 亮暗截图；[dev:drag1-3] 侧栏宽度 clamp + 持久化；[dev:start] 盘符树；[dev:recent] 最近打开菜单与 config 一致；[dev:recent-missing] 被删文件自动出索引 + 提示
+- 文件关联双击打开（Windows「打开方式」关联 .md 后双击）：argv 传入的 .md 路径启动即打开（did-finish-load 排空 startupMdPaths）；单实例锁——已运行实例经 second-instance 接收路径、恢复并聚焦窗口、打开文件；ELECTRON_RUN_AS_NODE 兜底重启透传 argv
+- 验证：[dev:panels1-6] 状态断言（互斥/聚焦/dirHidden/pathHidden/treeDirs）+ 亮暗截图；[dev:drag1-3] 侧栏宽度 clamp + 持久化；[dev:start] 盘符树；[dev:recent] 最近打开菜单与 config 一致；[dev:recent-missing] 被删文件自动出索引 + 提示；[dev:argv1] argv 启动打开；[dev:argv2] second-instance 转交打开
 
 ## 已知限制（1.1）
 

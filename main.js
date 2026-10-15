@@ -16,7 +16,7 @@ if (typeof electronRequire === 'string') {
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.electron_run_as_node;
   require('child_process')
-    .spawn(electronRequire, [__dirname], { stdio: 'inherit', env })
+    .spawn(electronRequire, [__dirname, ...process.argv.slice(2)], { stdio: 'inherit', env })
     .on('exit', (code) => process.exit(code ?? 0));
   return;
 }
@@ -350,6 +350,14 @@ async function buildMenu() {
   Menu.setApplicationMenu(appMenu);
 }
 
+// ---------- 文件关联 / 命令行打开 ----------
+
+// Windows「打开方式」双击 .md：路径作为命令行参数传入（argv[1:]）；
+// 应用已运行时新实例拿不到单实例锁，路径经 second-instance 事件转交给已运行实例
+const pendingMdPaths = (argv) => argv.filter((a) => /\.(md|markdown)$/i.test(a));
+const startupMdPaths = pendingMdPaths(process.argv);
+let winReady = false;
+
 // ---------- 窗口 ----------
 
 async function createWindow() {
@@ -386,8 +394,21 @@ async function createWindow() {
   // 仅开发/自动验证用：TOT_OPEN_DIR 定位展开到该目录；TOT_OPEN_FILE 再自动打开一个文件；
   // TOT_CHECK 在页面里跑断言并打印 DOM 状态（树/渲染/大纲/scrollspy）后退出
   win.webContents.on('did-finish-load', async () => {
+    winReady = true;
     if (!process.env.TOT_OPEN_DIR) {
       win.webContents.send('init-tree', { drives: await listDrives() });
+      // 文件关联双击：打开命令行传入的 md 文件
+      for (const p of startupMdPaths) await openByPath(p);
+      startupMdPaths.length = 0;
+      if (process.env.TOT_ARGV) {
+        // 文件关联首次双击验证：argv 传入的 md 已打开并渲染
+        await new Promise((r) => setTimeout(r, 2500));
+        console.log('[dev:argv1]', await win.webContents.executeJavaScript(
+          `JSON.stringify({ tabs: [...document.querySelectorAll('.tab .tab-name')].map((t) => t.textContent), h1: document.querySelector('#viewer h1')?.textContent ?? null })`,
+        ));
+        app.quit();
+        return;
+      }
       if (process.env.TOT_RECENT_MISSING) {
         // 最近打开的文件被删除：openByPath 应移除索引并在渲染层提示
         await new Promise((r) => setTimeout(r, 800));
@@ -820,13 +841,37 @@ async function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
-  protocol.handle('mdfile', handleMdfile);
-  createWindow();
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+// 文件关联双击：单实例——已运行实例经 second-instance 接收路径并打开
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', async (_e, argv) => {
+    for (const p of pendingMdPaths(argv)) {
+      if (winReady && win) await openByPath(p);
+      else startupMdPaths.push(p);
+    }
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+    if (process.env.TOT_ARGV_HOLD) {
+      // 文件关联二次双击验证：断言转交过来的文件已打开
+      await new Promise((r) => setTimeout(r, 1500));
+      console.log('[dev:argv2]', await win.webContents.executeJavaScript(
+        `JSON.stringify({ tabs: [...document.querySelectorAll('.tab .tab-name')].map((t) => t.textContent), h1: document.querySelector('#viewer h1')?.textContent ?? null })`,
+      ));
+      app.quit();
+    }
   });
-});
+
+  app.whenReady().then(() => {
+    protocol.handle('mdfile', handleMdfile);
+    createWindow();
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
