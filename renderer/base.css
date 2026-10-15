@@ -50,6 +50,44 @@ body {
 #save-status { font-size: 13px; color: #2da44e; }
 #save-status.error { color: #cf222e; }
 
+/* ---- 搜索条 ---- */
+
+#searchbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+#search-input {
+  border: none;
+  outline: none;
+  font: inherit;
+  width: 180px;
+  background: transparent;
+  color: inherit;
+}
+
+#search-count { font-size: 12px; color: #8c959f; min-width: 34px; text-align: center; }
+
+#searchbar button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #57606a;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 13px;
+}
+
+#searchbar button:hover { background: #eaeef2; }
+
+mark.tot-search { background: #ffe58f; color: inherit; padding: 0; }
+mark.tot-search.current { background: #ffb300; color: #1f2328; }
+
 #style-select {
   padding: 6px 8px;
   border: 1px solid #d1d9e0;
@@ -351,3 +389,11 @@ body.style-dark #editor {
 body.style-dark #close-confirm { background: #161b22; border-color: #30363d; color: #e6edf3; }
 
 body.style-dark #close-confirm button { background: #21262d; border-color: #30363d; color: #e6edf3; }
+
+body.style-dark #searchbar { background: #21262d; border-color: #30363d; }
+
+body.style-dark #searchbar button { color: #e6edf3; }
+body.style-dark #searchbar button:hover { background: #30363d; }
+
+body.style-dark mark.tot-search { background: #674d00; color: #e6edf3; }
+body.style-dark mark.tot-search.current { background: #b8860b; color: #0d1117; }

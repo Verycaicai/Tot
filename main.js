@@ -425,6 +425,43 @@ function createWindow() {
             ),
           }));
         }
+        if (process.env.TOT_SEARCH) {
+          await new Promise((r) => setTimeout(r, 800));
+          // search1: Ctrl+F 开搜索条，输入查询
+          await win.webContents.executeJavaScript(
+            `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }));
+             const si = document.querySelector('#search-input');
+             si.value = ${JSON.stringify(process.env.TOT_SEARCH_QUERY || '测试')};
+             si.dispatchEvent(new Event('input', { bubbles: true }));`,
+          );
+          await new Promise((r) => setTimeout(r, 300));
+          console.log('[dev:search1]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              barShown: !document.querySelector('#searchbar').hidden,
+              marks: document.querySelectorAll('#viewer mark.tot-search').length,
+              count: document.querySelector('#search-count').textContent,
+              currentIdx: [...document.querySelectorAll('#viewer mark.tot-search')].findIndex((m) => m.classList.contains('current')),
+            })`,
+          ));
+          // search2: 下一个
+          await win.webContents.executeJavaScript(`document.querySelector('#search-next').click()`);
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:search2]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ currentIdx: [...document.querySelectorAll('#viewer mark.tot-search')].findIndex((m) => m.classList.contains('current')) })`,
+          ));
+          // search3: 编辑模式下右栏重渲染后搜索仍应用
+          await win.webContents.executeJavaScript(`document.querySelector('#edit-toggle').click()`);
+          await new Promise((r) => setTimeout(r, 500));
+          console.log('[dev:search3]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ marksInEditViewer: document.querySelectorAll('#edit-viewer mark.tot-search').length })`,
+          ));
+          // search4: Esc 关闭并清除高亮
+          await win.webContents.executeJavaScript(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:search4]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ barHidden: document.querySelector('#searchbar').hidden, marks: document.querySelectorAll('#edit-viewer mark.tot-search').length })`,
+          ));
+        }
         if (process.env.TOT_SCREENSHOT) {
           await new Promise((r) => setTimeout(r, Number(process.env.TOT_WAIT) || 1500));
           const base = process.env.TOT_SCREENSHOT.replace(/\.png$/i, '');

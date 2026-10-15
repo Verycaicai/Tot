@@ -355,7 +355,7 @@ function showStatus(msg, isError) {
 
 // ---------- 渲染 ----------
 
-// 把 md 文本渲染进目标容器：marked 解析 + 图片相对路径解析 + 标题 id
+// 把 md 文本渲染进目标容器：marked 解析 + 图片相对路径解析 + 标题 id + 重新应用搜索
 async function renderMarkdown(targetEl, text, filePath) {
   targetEl.innerHTML = marked.parse(text);
   const imgs = [...targetEl.querySelectorAll('img')];
@@ -363,7 +363,137 @@ async function renderMarkdown(targetEl, text, filePath) {
   const resolved = await window.tot.resolveImages(filePath, srcs);
   imgs.forEach((img, i) => { img.src = resolved[i]; });
   assignHeadingIds(targetEl);
+  applySearch();
 }
+
+// ---------- 文件内查找（Ctrl+F） ----------
+
+let searchState = { query: '', matches: [], current: -1 };
+
+function openSearch() {
+  if (!activeTab) return;
+  $('#searchbar').hidden = false;
+  $('#search-input').focus();
+  $('#search-input').select();
+}
+
+function closeSearch() {
+  $('#searchbar').hidden = true;
+  clearMarks();
+  searchState = { query: '', matches: [], current: -1 };
+  $('#search-input').value = '';
+  $('#search-count').textContent = '';
+}
+
+// 移除所有搜索高亮，还原文本节点
+function clearMarks() {
+  document.querySelectorAll('mark.tot-search').forEach((m) => {
+    m.replaceWith(...m.childNodes);
+  });
+}
+
+// 收集渲染区里的文本节点（跳过 script/style/mark）
+function collectTextNodes(root) {
+  const nodes = [];
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || ['SCRIPT', 'STYLE', 'MARK'].includes(parent.tagName)) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return node.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    },
+  });
+  let n;
+  while ((n = walker.nextNode())) nodes.push(n);
+  return nodes;
+}
+
+// 在活动渲染区里高亮所有匹配（先收集再替换，避免边遍历边变异）
+function applySearch() {
+  clearMarks();
+  const q = searchState.query;
+  const viewer = activeViewer();
+  if (!q || !viewer) return;
+  const ql = q.toLowerCase();
+  const matches = [];
+  for (const node of collectTextNodes(viewer)) {
+    const text = node.textContent;
+    const lower = text.toLowerCase();
+    const ranges = [];
+    let idx = lower.indexOf(ql);
+    while (idx >= 0) {
+      ranges.push([idx, idx + q.length]);
+      idx = lower.indexOf(ql, idx + q.length);
+    }
+    if (!ranges.length) continue;
+    const frag = document.createDocumentFragment();
+    let pos = 0;
+    for (const [s, e] of ranges) {
+      if (s > pos) frag.append(document.createTextNode(text.slice(pos, s)));
+      const mark = document.createElement('mark');
+      mark.className = 'tot-search';
+      mark.textContent = text.slice(s, e);
+      frag.append(mark);
+      matches.push(mark);
+      pos = e;
+    }
+    if (pos < text.length) frag.append(document.createTextNode(text.slice(pos)));
+    node.replaceWith(frag);
+  }
+  searchState.matches = matches;
+  if (matches.length && searchState.current >= matches.length) searchState.current = matches.length - 1;
+  if (!matches.length) searchState.current = -1;
+  updateSearchUI();
+}
+
+function updateSearchUI() {
+  const { matches, current } = searchState;
+  $('#search-count').textContent = matches.length ? `${current + 1}/${matches.length}` : '0/0';
+  matches.forEach((m, i) => m.classList.toggle('current', i === current));
+  if (matches[current]) matches[current].scrollIntoView({ block: 'center' });
+}
+
+function moveSearch(dir) {
+  const { matches } = searchState;
+  if (!matches.length) return;
+  searchState.current = (searchState.current + dir + matches.length) % matches.length;
+  updateSearchUI();
+}
+
+$('#search-input').addEventListener('input', () => {
+  searchState.query = $('#search-input').value;
+  searchState.current = 0;
+  applySearch();
+});
+
+$('#search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    moveSearch(e.shiftKey ? -1 : 1);
+  }
+});
+
+$('#search-next').addEventListener('click', () => moveSearch(1));
+$('#search-prev').addEventListener('click', () => moveSearch(-1));
+$('#search-close').addEventListener('click', closeSearch);
+
+// ---------- 全局快捷键（渲染层只处理无菜单冲突的键；Ctrl+S/O 走主进程菜单） ----------
+
+document.addEventListener('keydown', (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === 'f') {
+    e.preventDefault();
+    openSearch();
+  } else if (mod && e.key === 'Tab') {
+    if (tabs.length < 2) return;
+    e.preventDefault();
+    const i = tabs.indexOf(activeTab);
+    activateTab(e.shiftKey ? tabs[(i - 1 + tabs.length) % tabs.length] : tabs[(i + 1) % tabs.length]);
+  } else if (e.key === 'Escape' && !$('#searchbar').hidden) {
+    closeSearch();
+  }
+});
 
 // ---------- 大纲 ----------
 
