@@ -251,16 +251,18 @@ function createWindow() {
             imgLoaded: (() => { const i = document.querySelector('#viewer img'); return i ? i.naturalWidth > 0 : null; })(),
             outline: [...document.querySelectorAll('#outline a')].map((a) => a.getAttribute('href')),
             outlineActive: document.querySelector('#outline a.active')?.getAttribute('href') ?? null,
+            tabs: document.querySelectorAll('.tab').length,
+            activeTab: document.querySelector('.tab.active .tab-name')?.textContent ?? null,
             style: document.body.className + '/' + (localStorage.getItem('tot-style') || 'none'),
           })`;
           console.log('[dev:check1]', await win.webContents.executeJavaScript(check));
           await win.webContents.executeJavaScript(
-            `window.__scrollLog = []; document.querySelector('#content').addEventListener('scroll', () => window.__scrollLog.push(performance.now().toFixed(0) + ':' + document.querySelector('#content').scrollTop)); document.querySelectorAll('#viewer h3')[1]?.scrollIntoView({ block: 'start' });`,
+            `window.__scrollLog = []; document.querySelector('#preview-scroll').addEventListener('scroll', () => window.__scrollLog.push(performance.now().toFixed(0) + ':' + document.querySelector('#preview-scroll').scrollTop)); document.querySelectorAll('#viewer h3')[1]?.scrollIntoView({ block: 'start' });`,
           );
           await new Promise((r) => setTimeout(r, 700));
           console.log('[dev:check2]', await win.webContents.executeJavaScript(
             `JSON.stringify({
-              scrollTop: document.querySelector('#content').scrollTop,
+              scrollTop: document.querySelector('#preview-scroll').scrollTop,
               active: document.querySelector('#outline a.active')?.getAttribute('href') ?? null,
               scrollLog: window.__scrollLog,
               headings: [...document.querySelectorAll('#viewer h1,h2,h3,h4,h5,h6')].map((h) => h.id + '@' + Math.round(h.getBoundingClientRect().top)),
@@ -286,6 +288,56 @@ function createWindow() {
               })`,
             ));
           }
+        }
+        if (process.env.TOT_TABS) {
+          await new Promise((r) => setTimeout(r, 800));
+          // tabs1: 打开第二个文件 → 两个标签页
+          await win.webContents.executeJavaScript(
+            `[...document.querySelectorAll('#file-tree a')].find((a) => a.textContent === '02-第二章.md')?.click()`,
+          );
+          await new Promise((r) => setTimeout(r, 600));
+          console.log('[dev:tabs1]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              count: document.querySelectorAll('.tab').length,
+              names: [...document.querySelectorAll('.tab-name')].map((s) => s.textContent),
+              active: document.querySelector('.tab.active .tab-name')?.textContent ?? null,
+              h1: document.querySelector('#viewer h1')?.textContent?.slice(0, 8) ?? null,
+            })`,
+          ));
+          // tabs2: 重复点同一文件 → 只激活不新增
+          await win.webContents.executeJavaScript(
+            `[...document.querySelectorAll('#file-tree a')].find((a) => a.textContent === '02-第二章.md')?.click()`,
+          );
+          await new Promise((r) => setTimeout(r, 300));
+          console.log('[dev:tabs2]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ count: document.querySelectorAll('.tab').length })`,
+          ));
+          // tabs3: tab0 滚动到 150 → 切 tab1 → 切回 tab0，断言滚动恢复
+          await win.webContents.executeJavaScript(`document.querySelectorAll('.tab')[0].click()`);
+          await new Promise((r) => setTimeout(r, 500));
+          await win.webContents.executeJavaScript(`document.querySelector('#preview-scroll').scrollTop = 150`);
+          await new Promise((r) => setTimeout(r, 300));
+          await win.webContents.executeJavaScript(`document.querySelectorAll('.tab')[1].click()`);
+          await new Promise((r) => setTimeout(r, 500));
+          await win.webContents.executeJavaScript(`document.querySelectorAll('.tab')[0].click()`);
+          await new Promise((r) => setTimeout(r, 500));
+          console.log('[dev:tabs3]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              active: document.querySelector('.tab.active .tab-name')?.textContent ?? null,
+              scrollTop: document.querySelector('#preview-scroll').scrollTop,
+              h1: document.querySelector('#viewer h1')?.textContent?.slice(0, 8) ?? null,
+            })`,
+          ));
+          // tabs4: 关闭全部标签 → 空态
+          await win.webContents.executeJavaScript(`[...document.querySelectorAll('.tab-close')].forEach((b) => b.click())`);
+          await new Promise((r) => setTimeout(r, 400));
+          console.log('[dev:tabs4]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              tabCount: document.querySelectorAll('.tab').length,
+              emptyShown: !document.querySelector('#empty').hidden,
+              panesHidden: document.querySelector('#panes').hidden,
+            })`,
+          ));
         }
         if (process.env.TOT_SCREENSHOT) {
           await new Promise((r) => setTimeout(r, Number(process.env.TOT_WAIT) || 1500));

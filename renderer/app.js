@@ -19,12 +19,24 @@ marked.use({
 
 const state = {
   root: null,        // 当前根目录
-  currentFile: null, // 当前打开的文件绝对路径
   style: localStorage.getItem('tot-style') || 'light',
 };
 
+// 标签页：{ id, path, name, text, dirty, mode:'preview'|'edit', lineEnding, scrollTop }
+const tabs = [];
+let activeTab = null;
+let openSeq = 0;      // 打开序号：防慢 readFile 晚到覆盖当前标签页
+
 const $ = (sel) => document.querySelector(sel);
-const contentEl = $('#content');
+
+// 当前活动的渲染区与滚动容器（预览 #viewer / 编辑右栏 #edit-viewer）
+function activeViewer() {
+  return activeTab && activeTab.mode === 'edit' ? $('#edit-viewer') : $('#viewer');
+}
+
+function activeScroll() {
+  return activeTab && activeTab.mode === 'edit' ? $('#edit-viewer') : $('#preview-scroll');
+}
 
 // ---------- 风格切换 ----------
 
@@ -49,8 +61,6 @@ $('#style-select').addEventListener('change', (e) => {
 });
 applyStyle();
 
-// ---------- 目录与文件树 ----------
-
 // ---------- 菜单命令（主进程 File 菜单触发） ----------
 
 window.tot.onMenuCommand((cmd) => {
@@ -73,6 +83,8 @@ async function openSingleFile() {
   openFile(data.file);
 }
 
+// ---------- 目录与文件树 ----------
+
 // 开发模式（TOT_OPEN_DIR）下主进程直接推送目录数据
 window.tot.onDirectorySelected(renderTree);
 
@@ -88,6 +100,7 @@ function renderTree(data) {
   } else {
     treeEl.append(buildTree(data.tree));
   }
+  restoreTreeActive();
 }
 
 function buildTree(entries) {
@@ -117,34 +130,148 @@ function buildTree(entries) {
   return ul;
 }
 
-// ---------- 打开文件与渲染 ----------
+// ---------- 标签页 ----------
 
+function baseName(p) {
+  return p.split(/[\\/]/).pop();
+}
+
+// 打开文件：已开则激活，否则新建标签页并渲染
 async function openFile(filePath, linkEl) {
-  const text = await window.tot.readFile(filePath);
-  state.currentFile = filePath;
-
-  const viewer = $('#viewer');
-  viewer.innerHTML = marked.parse(text);
-  await fixImages();
-  assignHeadingIds();
-  // 先让 viewer 可见再建 IntersectionObserver，否则初始交集回调算出来全不相交
-  $('#empty').hidden = true;
-  viewer.hidden = false;
-  contentEl.scrollTop = 0;
-  renderOutline();
-
+  const existing = tabs.find((t) => t.path === filePath);
+  if (existing) {
+    await activateTab(existing);
+  } else {
+    const seq = ++openSeq;
+    const text = await window.tot.readFile(filePath);
+    if (seq !== openSeq) return; // 已有更新的打开请求，丢弃本次
+    const tab = {
+      id: `tab-${seq}`,
+      path: filePath,
+      name: baseName(filePath),
+      text,
+      dirty: false,
+      mode: 'preview',
+      lineEnding: text.includes('\r\n') ? '\r\n' : '\n',
+      scrollTop: 0,
+    };
+    tabs.push(tab);
+    await renderTab(tab);
+  }
   if (linkEl) {
     document.querySelectorAll('#file-tree a.active').forEach((a) => a.classList.remove('active'));
     linkEl.classList.add('active');
   }
 }
 
-// md 内相对路径图片 → 以当前文件所在目录为基准解析为 mdfile:// URL
-async function fixImages() {
-  const imgs = [...$('#viewer').querySelectorAll('img')];
+// 新开标签页：渲染到预览区
+async function renderTab(tab) {
+  activeTab = tab;
+  $('#panes').hidden = false;
+  $('#empty').hidden = true;
+  await renderMarkdown($('#viewer'), tab.text, tab.path);
+  rebuildOutline();
+  activeScroll().scrollTop = 0;
+  updateTabbar();
+  restoreTreeActive();
+}
+
+// 切换标签页：互存滚动位置，重渲染并恢复
+async function activateTab(tab) {
+  if (tab === activeTab) return;
+  if (activeTab) activeTab.scrollTop = activeScroll().scrollTop;
+  activeTab = tab;
+  $('#panes').hidden = false;
+  $('#empty').hidden = true;
+  await renderMarkdown($('#viewer'), tab.text, tab.path);
+  rebuildOutline();
+  activeScroll().scrollTop = tab.scrollTop;
+  updateTabbar();
+  restoreTreeActive();
+}
+
+function updateTabbar() {
+  const bar = $('#tabbar');
+  bar.textContent = '';
+  bar.hidden = tabs.length === 0;
+  for (const t of tabs) {
+    const el = document.createElement('div');
+    el.className = 'tab' + (t === activeTab ? ' active' : '');
+    const name = document.createElement('span');
+    name.className = 'tab-name';
+    name.textContent = t.name;
+    const dirty = document.createElement('span');
+    dirty.className = 'tab-dirty';
+    dirty.textContent = '●';
+    dirty.hidden = !t.dirty;
+    const close = document.createElement('button');
+    close.className = 'tab-close';
+    close.title = '关闭';
+    close.textContent = '×';
+    close.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeTab(t);
+    });
+    el.append(name, dirty, close);
+    el.addEventListener('click', () => { activateTab(t); });
+    bar.append(el);
+  }
+}
+
+function restoreTreeActive() {
+  document.querySelectorAll('#file-tree a.active').forEach((a) => a.classList.remove('active'));
+  if (!activeTab) return;
+  const link = document.querySelector(`#file-tree a[title="${CSS.escape(activeTab.path)}"]`);
+  if (link) link.classList.add('active');
+}
+
+// ---------- 关闭标签页（dirty 时先确认） ----------
+
+let pendingCloseIndex = -1;
+
+function closeTab(tab) {
+  const i = tabs.indexOf(tab);
+  if (i < 0) return;
+  if (tab.dirty) {
+    pendingCloseIndex = i;
+    $('#close-confirm').hidden = false;
+    return;
+  }
+  doClose(i);
+}
+
+function doClose(i) {
+  pendingCloseIndex = -1;
+  $('#close-confirm').hidden = true;
+  const wasActive = tabs[i] === activeTab;
+  tabs.splice(i, 1);
+  if (!tabs.length) {
+    activeTab = null;
+    $('#panes').hidden = true;
+    $('#empty').hidden = false;
+    $('#outline-box').hidden = true;
+    $('#outline').textContent = '';
+    restoreTreeActive();
+    updateTabbar();
+    return;
+  }
+  if (wasActive) activateTab(tabs[Math.min(i, tabs.length - 1)]);
+  else updateTabbar();
+}
+
+$('#close-discard').addEventListener('click', () => { if (pendingCloseIndex >= 0) doClose(pendingCloseIndex); });
+$('#close-cancel').addEventListener('click', () => { pendingCloseIndex = -1; $('#close-confirm').hidden = true; });
+
+// ---------- 渲染 ----------
+
+// 把 md 文本渲染进目标容器：marked 解析 + 图片相对路径解析 + 标题 id
+async function renderMarkdown(targetEl, text, filePath) {
+  targetEl.innerHTML = marked.parse(text);
+  const imgs = [...targetEl.querySelectorAll('img')];
   const srcs = imgs.map((img) => img.getAttribute('src') || '');
-  const resolved = await window.tot.resolveImages(state.currentFile, srcs);
+  const resolved = await window.tot.resolveImages(filePath, srcs);
   imgs.forEach((img, i) => { img.src = resolved[i]; });
+  assignHeadingIds(targetEl);
 }
 
 // ---------- 大纲 ----------
@@ -155,9 +282,9 @@ function slugify(text) {
   return s || 'section';
 }
 
-function assignHeadingIds() {
+function assignHeadingIds(targetEl) {
   const counts = new Map();
-  $('#viewer').querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((h) => {
+  targetEl.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((h) => {
     let id = slugify(h.textContent);
     const n = (counts.get(id) || 0) + 1;
     counts.set(id, n);
@@ -166,10 +293,11 @@ function assignHeadingIds() {
   });
 }
 
-function renderOutline() {
+function rebuildOutline() {
+  const viewer = activeViewer();
   const ul = $('#outline');
   ul.textContent = '';
-  const headings = $('#viewer').querySelectorAll('h1,h2,h3,h4,h5,h6');
+  const headings = viewer.querySelectorAll('h1,h2,h3,h4,h5,h6');
   $('#outline-box').hidden = headings.length === 0;
   headings.forEach((h) => {
     const li = document.createElement('li');
@@ -209,7 +337,7 @@ function setupScrollspy(headings) {
       }
     }
     if (best) setActiveHeading(best);
-  }, { root: contentEl, threshold: 0 });
+  }, { root: activeScroll(), threshold: 0 });
   headings.forEach((h) => observer.observe(h));
 }
 
