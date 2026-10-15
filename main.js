@@ -462,6 +462,48 @@ function createWindow() {
             `JSON.stringify({ barHidden: document.querySelector('#searchbar').hidden, marks: document.querySelectorAll('#edit-viewer mark.tot-search').length })`,
           ));
         }
+        if (process.env.TOT_DRAG) {
+          await new Promise((r) => setTimeout(r, 800));
+          const drag = (x0, x1, y) => win.webContents.executeJavaScript(
+            `{ const fire = (type, x, yy, target) => target.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: yy, bubbles: true }));
+              const r = document.querySelector('#sidebar-resizer');
+              fire('pointerdown', ${x0}, ${y}, r);
+              fire('pointermove', ${x1}, ${y}, document);
+              fire('pointerup', ${x1}, ${y}, document); }`,
+          );
+          // drag1: 300 → 480
+          await drag(300, 480, 300);
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:drag1]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ sidebarWidth: document.querySelector('#sidebar').getBoundingClientRect().width })`,
+          ));
+          // drag2: 拖到 900 → clamp 600
+          await drag(480, 900, 300);
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:drag2]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ sidebarWidth: document.querySelector('#sidebar').getBoundingClientRect().width })`,
+          ));
+          // drag3: 拖到 0 → clamp 200
+          await drag(600, 0, 300);
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:drag3]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ sidebarWidth: document.querySelector('#sidebar').getBoundingClientRect().width })`,
+          ));
+          // drag4: outline 高度下拉 80px
+          await win.webContents.executeJavaScript(
+            `{ window.__oh0 = document.querySelector('#outline-box').getBoundingClientRect().height;
+              const fire = (type, yy, target) => target.dispatchEvent(new PointerEvent(type, { clientX: 100, clientY: yy, bubbles: true }));
+              const r = document.querySelector('#outline-resizer');
+              const sy = r.getBoundingClientRect().top;
+              fire('pointerdown', sy, r);
+              fire('pointermove', sy + 80, document);
+              fire('pointerup', sy + 80, document); }`,
+          );
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:drag4]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ h0: window.__oh0, h1: document.querySelector('#outline-box').getBoundingClientRect().height })`,
+          ));
+        }
         if (process.env.TOT_SCREENSHOT) {
           await new Promise((r) => setTimeout(r, Number(process.env.TOT_WAIT) || 1500));
           const base = process.env.TOT_SCREENSHOT.replace(/\.png$/i, '');

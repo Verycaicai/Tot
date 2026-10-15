@@ -111,6 +111,26 @@ mark.tot-search.current { background: #ffb300; color: #1f2328; }
   border-right: 1px solid #d1d9e0;
 }
 
+/* ---- 面板拖拽手柄 ---- */
+
+#sidebar-resizer {
+  flex: none;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+}
+
+#sidebar-resizer:hover { background: #d1d9e0; }
+
+#outline-resizer {
+  flex: none;
+  height: 5px;
+  cursor: row-resize;
+  background: transparent;
+}
+
+#outline-resizer:hover { background: #d1d9e0; }
+
 #content {
   flex: 1;
   display: flex;
@@ -397,3 +417,6 @@ body.style-dark #searchbar button:hover { background: #30363d; }
 
 body.style-dark mark.tot-search { background: #674d00; color: #e6edf3; }
 body.style-dark mark.tot-search.current { background: #b8860b; color: #0d1117; }
+
+body.style-dark #sidebar-resizer:hover,
+body.style-dark #outline-resizer:hover { background: #30363d; }

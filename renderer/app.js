@@ -478,6 +478,43 @@ $('#search-next').addEventListener('click', () => moveSearch(1));
 $('#search-prev').addEventListener('click', () => moveSearch(-1));
 $('#search-close').addEventListener('click', closeSearch);
 
+// ---------- 面板拖拽 ----------
+
+let dragState = null; // { kind:'sidebar'|'outline', startX, startY, startW, startH }
+
+function clamp(v, min, max) {
+  return Math.min(max, Math.max(min, v));
+}
+
+function startDrag(kind, e) {
+  dragState = {
+    kind,
+    startX: e.clientX,
+    startY: e.clientY,
+    startW: $('#sidebar').clientWidth,
+    startH: $('#outline-box').clientHeight,
+  };
+  e.preventDefault();
+}
+
+// 不用 setPointerCapture：合成 PointerEvent 没有真实 pointerId 会抛错，
+// 改为 document 级 move/up + 标志位
+document.addEventListener('pointermove', (e) => {
+  if (!dragState) return;
+  if (dragState.kind === 'sidebar') {
+    $('#sidebar').style.width = clamp(dragState.startW + e.clientX - dragState.startX, 200, 600) + 'px';
+  } else {
+    $('#outline-box').style.height = clamp(dragState.startH + e.clientY - dragState.startY, 120, 600) + 'px';
+  }
+});
+
+document.addEventListener('pointerup', () => { dragState = null; });
+// 指针拖出窗口再松手会丢 pointerup：离开文档时兜底结束拖拽
+document.addEventListener('pointerleave', () => { dragState = null; });
+
+$('#sidebar-resizer').addEventListener('pointerdown', (e) => startDrag('sidebar', e));
+$('#outline-resizer').addEventListener('pointerdown', (e) => startDrag('outline', e));
+
 // ---------- 全局快捷键（渲染层只处理无菜单冲突的键；Ctrl+S/O 走主进程菜单） ----------
 
 document.addEventListener('keydown', (e) => {
@@ -520,6 +557,7 @@ function rebuildOutline() {
   ul.textContent = '';
   const headings = viewer.querySelectorAll('h1,h2,h3,h4,h5,h6');
   $('#outline-box').hidden = headings.length === 0;
+  $('#outline-resizer').hidden = headings.length === 0;
   headings.forEach((h) => {
     const li = document.createElement('li');
     li.className = `level-${h.tagName[1]}`;
