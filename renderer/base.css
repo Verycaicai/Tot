@@ -47,6 +47,9 @@ body {
 #edit-toggle:disabled { opacity: 0.5; cursor: default; }
 #edit-toggle:disabled:hover { background: #fff; }
 
+#save-status { font-size: 13px; color: #2da44e; }
+#save-status.error { color: #cf222e; }
+
 #style-select {
   padding: 6px 8px;
   border: 1px solid #d1d9e0;

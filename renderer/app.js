@@ -66,7 +66,7 @@ applyStyle();
 window.tot.onMenuCommand((cmd) => {
   if (cmd === 'open-folder') openDirectory();
   else if (cmd === 'open-file') openSingleFile();
-  // 'save' 在编辑功能（M8）里接线
+  else if (cmd === 'save') saveActiveTab();
 });
 
 async function openDirectory() {
@@ -169,6 +169,7 @@ async function renderTab(tab) {
   activeTab = tab;
   $('#panes').hidden = false;
   $('#empty').hidden = true;
+  showPanes('preview');
   await renderMarkdown($('#viewer'), tab.text, tab.path);
   rebuildOutline();
   activeScroll().scrollTop = 0;
@@ -176,14 +177,20 @@ async function renderTab(tab) {
   restoreTreeActive();
 }
 
-// 切换标签页：互存滚动位置，重渲染并恢复
+// 切换标签页：互存滚动位置，重渲染并恢复（含编辑/预览模式）
 async function activateTab(tab) {
   if (tab === activeTab) return;
   if (activeTab) activeTab.scrollTop = activeScroll().scrollTop;
   activeTab = tab;
   $('#panes').hidden = false;
   $('#empty').hidden = true;
-  await renderMarkdown($('#viewer'), tab.text, tab.path);
+  showPanes(tab.mode);
+  if (tab.mode === 'edit') {
+    $('#editor').value = tab.text;
+    await renderMarkdown($('#edit-viewer'), tab.text, tab.path);
+  } else {
+    await renderMarkdown($('#viewer'), tab.text, tab.path);
+  }
   rebuildOutline();
   activeScroll().scrollTop = tab.scrollTop;
   updateTabbar();
@@ -194,9 +201,11 @@ function updateTabbar() {
   const bar = $('#tabbar');
   bar.textContent = '';
   bar.hidden = tabs.length === 0;
+  $('#edit-toggle').disabled = !activeTab;
   for (const t of tabs) {
     const el = document.createElement('div');
     el.className = 'tab' + (t === activeTab ? ' active' : '');
+    t.el = el; // dirty 更新只改节点类，不重建整条 tab 栏
     const name = document.createElement('span');
     name.className = 'tab-name';
     name.textContent = t.name;
@@ -249,6 +258,7 @@ function doClose(i) {
     activeTab = null;
     $('#panes').hidden = true;
     $('#empty').hidden = false;
+    $('#edit-toggle').disabled = true;
     $('#outline-box').hidden = true;
     $('#outline').textContent = '';
     restoreTreeActive();
@@ -261,6 +271,87 @@ function doClose(i) {
 
 $('#close-discard').addEventListener('click', () => { if (pendingCloseIndex >= 0) doClose(pendingCloseIndex); });
 $('#close-cancel').addEventListener('click', () => { pendingCloseIndex = -1; $('#close-confirm').hidden = true; });
+
+// ---------- 编辑（双栏实时预览） ----------
+
+let editTimer = null; // 输入 debounce
+
+// 显示预览/编辑面板并同步按钮文案
+function showPanes(mode) {
+  $('#preview-scroll').hidden = mode === 'edit';
+  $('#edit-pane').hidden = mode !== 'edit';
+  $('#edit-toggle').textContent = mode === 'edit' ? '预览' : '编辑';
+}
+
+$('#edit-toggle').addEventListener('click', async () => {
+  if (!activeTab) return;
+  await setMode(activeTab.mode === 'edit' ? 'preview' : 'edit');
+});
+
+// 切换当前标签页的预览/编辑模式（互存滚动位置）
+async function setMode(mode) {
+  if (!activeTab || activeTab.mode === mode) return;
+  activeTab.scrollTop = activeScroll().scrollTop;
+  activeTab.mode = mode;
+  showPanes(mode);
+  clearTimeout(editTimer);
+  if (mode === 'edit') {
+    $('#editor').value = activeTab.text;
+    await renderMarkdown($('#edit-viewer'), activeTab.text, activeTab.path);
+  } else {
+    await renderMarkdown($('#viewer'), activeTab.text, activeTab.path);
+  }
+  rebuildOutline();
+  activeScroll().scrollTop = activeTab.scrollTop;
+}
+
+// 编辑器输入：文本与 dirty 即时同步，300ms debounce 刷新右栏
+$('#editor').addEventListener('input', (e) => {
+  if (!activeTab || activeTab.mode !== 'edit') return;
+  activeTab.text = e.target.value;
+  activeTab.dirty = true;
+  updateTabbarDirty(activeTab);
+  clearTimeout(editTimer);
+  editTimer = setTimeout(async () => {
+    if (!activeTab || activeTab.mode !== 'edit') return; // 期间切走则丢弃
+    await renderMarkdown($('#edit-viewer'), activeTab.text, activeTab.path);
+    rebuildOutline();
+  }, 300);
+});
+
+function updateTabbarDirty(tab) {
+  if (tab.el) tab.el.querySelector('.tab-dirty').hidden = !tab.dirty;
+}
+
+// 菜单 文件 → 保存 / Ctrl+S（唯一入口，渲染层不监听 Ctrl+S 防双触发）
+async function saveActiveTab() {
+  if (!activeTab || !activeTab.dirty) return;
+  const tab = activeTab;
+  if (tab.mode === 'edit') {
+    tab.text = $('#editor').value;
+    await renderMarkdown($('#edit-viewer'), tab.text, tab.path);
+    rebuildOutline();
+  }
+  try {
+    // 编辑器把换行统一成 \n，写盘时按原文件的换行风格还原
+    await window.tot.writeFile(tab.path, tab.text.split('\n').join(tab.lineEnding));
+    tab.dirty = false;
+    updateTabbarDirty(tab);
+    showStatus('已保存');
+  } catch (err) {
+    showStatus('保存失败：' + err.message, true);
+  }
+}
+
+let statusTimer = null;
+
+function showStatus(msg, isError) {
+  const el = $('#save-status');
+  el.textContent = msg;
+  el.classList.toggle('error', !!isError);
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
 
 // ---------- 渲染 ----------
 

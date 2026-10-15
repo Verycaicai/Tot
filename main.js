@@ -338,6 +338,92 @@ function createWindow() {
               panesHidden: document.querySelector('#panes').hidden,
             })`,
           ));
+          // tabs5/6: dirty 关闭确认——编辑改字 → 关闭弹确认条 → 取消 → 再关并丢弃
+          await win.webContents.executeJavaScript(`[...document.querySelectorAll('#file-tree a')].find((a) => a.textContent === 'README.md')?.click()`);
+          await new Promise((r) => setTimeout(r, 500));
+          await win.webContents.executeJavaScript(`document.querySelector('#edit-toggle').click()`);
+          await new Promise((r) => setTimeout(r, 300));
+          await win.webContents.executeJavaScript(
+            `const ed = document.querySelector('#editor'); ed.value = ed.value + 'x'; ed.dispatchEvent(new Event('input', { bubbles: true }));`,
+          );
+          await new Promise((r) => setTimeout(r, 200));
+          await win.webContents.executeJavaScript(`document.querySelector('.tab-close').click()`);
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:tabs5]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              confirmShown: !document.querySelector('#close-confirm').hidden,
+              tabStillThere: document.querySelectorAll('.tab').length === 1,
+            })`,
+          ));
+          await win.webContents.executeJavaScript(`document.querySelector('#close-cancel').click()`);
+          await new Promise((r) => setTimeout(r, 200));
+          await win.webContents.executeJavaScript(`document.querySelector('.tab-close').click()`);
+          await new Promise((r) => setTimeout(r, 200));
+          await win.webContents.executeJavaScript(`document.querySelector('#close-discard').click()`);
+          await new Promise((r) => setTimeout(r, 400));
+          console.log('[dev:tabs6]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              tabCount: document.querySelectorAll('.tab').length,
+              emptyShown: !document.querySelector('#empty').hidden,
+            })`,
+          ));
+        }
+        if (process.env.TOT_EDIT) {
+          const editFile = path.join(rootDir, process.env.TOT_OPEN_FILE || 'README.md');
+          await new Promise((r) => setTimeout(r, 800));
+          // edit1: 切到编辑模式
+          await win.webContents.executeJavaScript(`document.querySelector('#edit-toggle').click()`);
+          await new Promise((r) => setTimeout(r, 400));
+          console.log('[dev:edit1]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              editPane: !document.querySelector('#edit-pane').hidden,
+              previewHidden: document.querySelector('#preview-scroll').hidden,
+              editorHasText: document.querySelector('#editor').value.length > 0,
+              toggleLabel: document.querySelector('#edit-toggle').textContent,
+              editViewerH1: document.querySelector('#edit-viewer h1')?.textContent?.slice(0, 8) ?? null,
+            })`,
+          ));
+          // edit2: 插入标记文本 → dirty 出现
+          await win.webContents.executeJavaScript(
+            `const ed = document.querySelector('#editor');
+             ed.value = ed.value + '\\n\\n**TOT编辑测试段落**';
+             ed.dispatchEvent(new Event('input', { bubbles: true }));`,
+          );
+          await new Promise((r) => setTimeout(r, 200));
+          console.log('[dev:edit2]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ dirty: !document.querySelector('.tab-dirty').hidden })`,
+          ));
+          // edit3: debounce 后右栏渲染出标记
+          await new Promise((r) => setTimeout(r, 500));
+          console.log('[dev:edit3]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ rendered: document.querySelector('#edit-viewer').textContent.includes('TOT编辑测试段落') })`,
+          ));
+          // edit4/5: 走菜单命令链路保存，断言磁盘真的被改
+          const before = await fs.readFile(editFile, 'utf8');
+          win.webContents.send('menu-command', 'save');
+          await new Promise((r) => setTimeout(r, 700));
+          const after = await fs.readFile(editFile, 'utf8');
+          console.log('[dev:edit4]', JSON.stringify({
+            diskChanged: after !== before,
+            dirtyGone: await win.webContents.executeJavaScript(`document.querySelector('.tab-dirty').hidden`),
+          }));
+          console.log('[dev:edit5]', JSON.stringify({
+            diskHasMarker: after.includes('TOT编辑测试段落'),
+            status: await win.webContents.executeJavaScript(`document.querySelector('#save-status').textContent`),
+          }));
+          // edit6: 经 write-file IPC 恢复原内容，测试数据零污染
+          await win.webContents.executeJavaScript(
+            `window.tot.writeFile(${JSON.stringify(editFile)}, ${JSON.stringify(before)})`,
+          );
+          await new Promise((r) => setTimeout(r, 300));
+          const restored = await fs.readFile(editFile, 'utf8');
+          console.log('[dev:edit6]', JSON.stringify({ restored: restored === before }));
+          // edit7: 越界路径被拒
+          console.log('[dev:edit7]', JSON.stringify({
+            result: await win.webContents.executeJavaScript(
+              `window.tot.writeFile('C:/Windows/System32/tot-test.txt', 'x').then(() => 'ok', (e) => 'err')`,
+            ),
+          }));
         }
         if (process.env.TOT_SCREENSHOT) {
           await new Promise((r) => setTimeout(r, Number(process.env.TOT_WAIT) || 1500));
