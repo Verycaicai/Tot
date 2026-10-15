@@ -21,9 +21,12 @@ if (typeof electronRequire === 'string') {
   return;
 }
 
-const { app, BrowserWindow, ipcMain, dialog, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, protocol, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
+
+// 验证时隔离 userData（须在 app ready 前设置）
+if (process.env.TOT_USER_DATA) app.setPath('userData', process.env.TOT_USER_DATA);
 
 // 自定义协议：mdfile://local/<绝对路径>，用于加载 md 内的本地图片
 protocol.registerSchemesAsPrivileged([
@@ -70,13 +73,45 @@ function isInside(root, p) {
   return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
 }
 
+// ---------- 记住上次目录 ----------
+
+// userData/config.json：{ lastDir }。渲染层不可信，路径只由主进程的对话框产生
+const configPath = () => path.join(app.getPath('userData'), 'config.json');
+
+async function loadConfig() {
+  try {
+    return JSON.parse(await fs.readFile(configPath(), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+async function saveConfig(patch) {
+  const cfg = { ...(await loadConfig()), ...patch };
+  await fs.mkdir(path.dirname(configPath()), { recursive: true });
+  await fs.writeFile(configPath(), JSON.stringify(cfg, null, 2), 'utf8');
+}
+
 // ---------- IPC ----------
 
 ipcMain.handle('select-directory', async () => {
   const res = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
   if (res.canceled || !res.filePaths.length) return null;
   rootDir = res.filePaths[0];
+  await saveConfig({ lastDir: rootDir });
   return { root: rootDir, tree: await scanDir(rootDir) };
+});
+
+// 打开单个 md 文件：以文件所在目录为边界，返回 { root, tree, file } 或 null
+ipcMain.handle('select-file', async () => {
+  const res = await dialog.showOpenDialog(win, {
+    properties: ['openFile'],
+    filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
+  });
+  if (res.canceled || !res.filePaths.length) return null;
+  rootDir = path.dirname(res.filePaths[0]);
+  await saveConfig({ lastDir: rootDir });
+  return { root: rootDir, tree: await scanDir(rootDir), file: res.filePaths[0] };
 });
 
 ipcMain.handle('read-file', async (_e, p) => {
@@ -93,6 +128,12 @@ ipcMain.handle('resolve-images', (_e, filePath, srcs) => {
     const abs = path.resolve(base, src.replace(/\//g, path.sep));
     return 'mdfile://local/' + encodeURI(abs.replace(/\\/g, '/'));
   });
+});
+
+// 保存当前编辑内容（菜单 文件 → 保存 / Ctrl+S），与 read-file 同样的边界校验
+ipcMain.handle('write-file', async (_e, p, text) => {
+  if (!rootDir || !isInside(rootDir, p)) throw new Error('路径在所选目录之外');
+  await fs.writeFile(p, text, 'utf8');
 });
 
 // ---------- 图片协议 ----------
@@ -112,11 +153,30 @@ function handleMdfile(request) {
   );
 }
 
+// ---------- 菜单 ----------
+
+let appMenu = null;
+
+function buildMenu() {
+  appMenu = Menu.buildFromTemplate([
+    {
+      label: '文件',
+      submenu: [
+        { label: '打开文件', accelerator: 'CmdOrCtrl+O', click: () => win?.webContents.send('menu-command', 'open-file') },
+        { label: '打开文件夹', accelerator: 'CmdOrCtrl+Shift+O', click: () => win?.webContents.send('menu-command', 'open-folder') },
+        { type: 'separator' },
+        { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => win?.webContents.send('menu-command', 'save') },
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(appMenu);
+}
+
 // ---------- 窗口 ----------
 
 function createWindow() {
   win = new BrowserWindow({
-    title: 'Tot — Trail of Tears',
+    title: 'Tot',
     icon: path.join(__dirname, 'Tot.png'),
     width: 1280,
     height: 840,
@@ -127,6 +187,7 @@ function createWindow() {
     },
   });
 
+  buildMenu();
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
   // 开发模式：渲染进程 console 转发到终端（验证「DevTools 无报错」用）
@@ -142,15 +203,31 @@ function createWindow() {
 
   win.on('closed', () => { win = null; });
 
+  // 生产行为：启动时自动恢复上次打开的目录（无 TOT_OPEN_DIR 时）
   // 仅开发/自动验证用：TOT_OPEN_DIR 启动即打开该目录（跳过对话框）；
   // TOT_OPEN_FILE 按文件名自动打开一个文件；TOT_SCREENSHOT 截两张图（顶部 + 滚动后）后退出；
   // TOT_CHECK 在页面里跑断言并打印 DOM 状态（树/渲染/大纲/scrollspy）后退出
-  if (process.env.TOT_OPEN_DIR) {
-    win.webContents.on('did-finish-load', async () => {
-      try {
-        const dir = process.env.TOT_OPEN_DIR;
-        rootDir = path.resolve(dir);
+  win.webContents.on('did-finish-load', async () => {
+    if (!process.env.TOT_OPEN_DIR) {
+      const cfg = await loadConfig();
+      if (cfg.lastDir) {
+        rootDir = cfg.lastDir;
         win.webContents.send('directory-selected', { root: rootDir, tree: await scanDir(rootDir) });
+      }
+      if (process.env.TOT_CHECK) {
+        await new Promise((r) => setTimeout(r, 800));
+        console.log('[dev:restore]', await win.webContents.executeJavaScript(
+          `JSON.stringify({ root: ${JSON.stringify(cfg.lastDir || null)}, treeFiles: [...document.querySelectorAll('#file-tree a')].map((a) => a.textContent) })`,
+        ));
+        app.quit();
+      }
+      return;
+    }
+    try {
+      const dir = process.env.TOT_OPEN_DIR;
+      rootDir = path.resolve(dir);
+      if (process.env.TOT_SAVE_CONFIG) await saveConfig({ lastDir: rootDir });
+      win.webContents.send('directory-selected', { root: rootDir, tree: await scanDir(rootDir) });
         if (process.env.TOT_OPEN_FILE) {
           await new Promise((r) => setTimeout(r, 400));
           await win.webContents.executeJavaScript(
@@ -158,6 +235,10 @@ function createWindow() {
           );
         }
         if (process.env.TOT_CHECK) {
+          console.log('[dev:menu]', JSON.stringify({
+            labels: appMenu.items.map((i) => i.label),
+            saveAcc: appMenu.items[0].submenu.items.find((i) => i.label === '保存')?.accelerator,
+          }));
           await new Promise((r) => setTimeout(r, 800));
           const check = `JSON.stringify({
             treeFiles: [...document.querySelectorAll('#file-tree a')].map((a) => a.textContent),
@@ -220,12 +301,11 @@ function createWindow() {
           await fs.writeFile(`${base}-scrolled.png`, shot2.toPNG());
           console.log(`[dev] screenshot saved: ${base}-scrolled.png`);
         }
-      } catch (err) {
-        console.error('[dev] auto-drive failed:', err);
-      }
-      if (process.env.TOT_SCREENSHOT || process.env.TOT_CHECK) app.quit();
-    });
-  }
+    } catch (err) {
+      console.error('[dev] auto-drive failed:', err);
+    }
+    if (process.env.TOT_SCREENSHOT || process.env.TOT_CHECK) app.quit();
+  });
 }
 
 app.whenReady().then(() => {

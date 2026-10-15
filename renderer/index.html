@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: mdfile: data:; font-src file: data:">
-  <title>Tot — Trail of Tears</title>
+  <title>Tot</title>
   <link rel="stylesheet" href="base.css">
   <link id="gh-style" rel="stylesheet" href="../lib/github-markdown-light.css">
   <link rel="stylesheet" href="styles/minimal.css">
@@ -11,9 +11,8 @@
 <body class="style-light">
 
   <header id="topbar">
-    <span id="app-title">Tot — Trail of Tears</span>
     <div id="controls">
-      <button id="open-dir">打开目录</button>
+      <button id="edit-toggle" disabled title="编辑当前文档">编辑</button>
       <select id="style-select" title="渲染风格">
         <option value="light">GitHub 亮</option>
         <option value="dark">GitHub 暗</option>
@@ -33,7 +32,7 @@
     <article id="content">
       <div id="empty">
         <p>还没有打开目录</p>
-        <p class="hint">点击左上角「打开目录」，选择包含 Markdown 文件的文件夹</p>
+        <p class="hint">菜单 文件 → 打开文件夹 (Ctrl+Shift+O)</p>
       </div>
       <div id="viewer" class="markdown-body" hidden></div>
     </article>

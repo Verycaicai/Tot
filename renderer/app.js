@@ -51,12 +51,26 @@ applyStyle();
 
 // ---------- 目录与文件树 ----------
 
-$('#open-dir').addEventListener('click', openDirectory);
+// ---------- 菜单命令（主进程 File 菜单触发） ----------
+
+window.tot.onMenuCommand((cmd) => {
+  if (cmd === 'open-folder') openDirectory();
+  else if (cmd === 'open-file') openSingleFile();
+  // 'save' 在编辑功能（M8）里接线
+});
 
 async function openDirectory() {
   const data = await window.tot.selectDirectory();
   if (!data) return;
   renderTree(data);
+}
+
+// 菜单 文件 → 打开文件：以文件所在目录为根渲染树，并打开该文件
+async function openSingleFile() {
+  const data = await window.tot.selectFile();
+  if (!data) return;
+  renderTree(data);
+  openFile(data.file);
 }
 
 // 开发模式（TOT_OPEN_DIR）下主进程直接推送目录数据
@@ -119,8 +133,10 @@ async function openFile(filePath, linkEl) {
   contentEl.scrollTop = 0;
   renderOutline();
 
-  document.querySelectorAll('#file-tree a.active').forEach((a) => a.classList.remove('active'));
-  linkEl.classList.add('active');
+  if (linkEl) {
+    document.querySelectorAll('#file-tree a.active').forEach((a) => a.classList.remove('active'));
+    linkEl.classList.add('active');
+  }
 }
 
 // md 内相对路径图片 → 以当前文件所在目录为基准解析为 mdfile:// URL

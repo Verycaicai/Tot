@@ -30,11 +30,9 @@ body {
   border-bottom: 1px solid #d1d9e0;
 }
 
-#app-title { font-weight: 600; font-size: 15px; }
-
 #controls { display: flex; align-items: center; gap: 10px; }
 
-#open-dir {
+#edit-toggle {
   padding: 6px 14px;
   border: 1px solid #d1d9e0;
   border-radius: 6px;
@@ -44,7 +42,10 @@ body {
   font: inherit;
 }
 
-#open-dir:hover { background: #eef1f4; }
+#edit-toggle:hover { background: #eef1f4; }
+
+#edit-toggle:disabled { opacity: 0.5; cursor: default; }
+#edit-toggle:disabled:hover { background: #fff; }
 
 #style-select {
   padding: 6px 8px;
@@ -194,14 +195,14 @@ body.style-dark #sidebar {
   border-color: #30363d;
 }
 
-body.style-dark #open-dir,
+body.style-dark #edit-toggle,
 body.style-dark #style-select {
   background: #21262d;
   border-color: #30363d;
   color: #e6edf3;
 }
 
-body.style-dark #open-dir:hover,
+body.style-dark #edit-toggle:hover,
 body.style-dark #file-tree summary:hover,
 body.style-dark #file-tree a:hover,
 body.style-dark #outline a:hover { background: #21262d; }
