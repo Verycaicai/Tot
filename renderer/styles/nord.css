@@ -124,7 +124,12 @@ body.style-nord #outline a { color: #d8dee9; }
 body.style-nord #file-tree a.active,
 body.style-nord #outline a.active { background: #434c5e; color: #88c0d0; }
 
-body.style-nord #outline-box { border-color: #4c566a; }
+body.style-nord #tree-header,
+body.style-nord #outline-header { border-color: #4c566a; }
+
+body.style-nord .panel-header,
+body.style-nord .panel-toggle { color: #81a1c1; }
+body.style-nord .panel-toggle:hover { background: #434c5e; }
 
 body.style-nord #content { background: #2e3440; }
 
@@ -156,8 +161,7 @@ body.style-nord #searchbar button:hover { background: #434c5e; }
 body.style-nord mark.tot-search { background: #6b4d00; color: #d8dee9; }
 body.style-nord mark.tot-search.current { background: #d4a72c; color: #2e3440; }
 
-body.style-nord #sidebar-resizer:hover,
-body.style-nord #outline-resizer:hover { background: #4c566a; }
+body.style-nord #sidebar-resizer:hover { background: #4c566a; }
 
 
 /* ---- 代码语法高亮（highlight.js token 配色） ---- */

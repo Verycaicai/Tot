@@ -126,15 +126,6 @@ mark.tot-search.current { background: #ffb300; color: #1f2328; }
 
 #sidebar-resizer:hover { background: #d1d9e0; }
 
-#outline-resizer {
-  flex: none;
-  height: 5px;
-  cursor: row-resize;
-  background: transparent;
-}
-
-#outline-resizer:hover { background: #d1d9e0; }
-
 #content {
   flex: 1;
   display: flex;
@@ -161,6 +152,7 @@ mark.tot-search.current { background: #ffb300; color: #1f2328; }
   gap: 6px;
   padding: 6px 8px 6px 12px;
   border-right: 1px solid #d1d9e0;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
@@ -292,24 +284,53 @@ mark.tot-search.current { background: #ffb300; color: #1f2328; }
 
 #file-tree .tree-empty { padding: 12px 10px; color: #8c959f; }
 
-/* ---- 大纲 ---- */
+/* ---- 面板标题条（目录浏览 / 大纲视图）与折叠 ---- */
 
-#outline-box {
-  height: 40%;
+.panel-header {
   flex: none;
   display: flex;
-  flex-direction: column;
-  border-top: 1px solid #d1d9e0;
-  min-height: 120px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1px 12px;
+  font-size: 12px;
+  color: #57606a;
+  user-select: none;
 }
 
-#outline-title {
-  flex: none;
-  padding: 8px 14px;
-  font-size: 12px;
-  color: #8c959f;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+#tree-header { border-bottom: 1px solid #d1d9e0; }
+
+#outline-header { border-bottom: 1px solid #d1d9e0; }
+
+.panel-toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #57606a;
+  font-size: 22px;
+  line-height: 1;
+  padding: 1px 8px;
+  border-radius: 4px;
+}
+
+.panel-toggle:hover { background: #eaeef2; }
+
+/* 树与大纲互斥：同一时刻只展开一个，折叠的标题条钉在对应侧沿（大纲钉底、树钉顶）。
+   展开时标题在内容上方；折叠时标题条改用上边框分隔 */
+#sidebar.tree-collapsed #file-tree { display: none; }
+#sidebar.outline-collapsed #outline-body { display: none; }
+#sidebar.outline-collapsed #outline-header { margin-top: auto; border-top: 1px solid #d1d9e0; border-bottom: none; }
+
+/* 路径聚焦：链上中间层只显示路径上的下一个文件夹（.path-hidden），
+   末级目录只显示其中的 MD 文档（.dir-hidden） */
+.dir-hidden, .path-hidden { display: none; }
+
+/* ---- 大纲 ---- */
+
+#outline-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 #outline { list-style: none; margin: 0; padding: 0 6px 10px; overflow-y: auto; }

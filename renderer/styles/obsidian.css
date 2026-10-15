@@ -124,7 +124,12 @@ body.style-obsidian #outline a { color: #dcddde; }
 body.style-obsidian #file-tree a.active,
 body.style-obsidian #outline a.active { background: rgba(127, 109, 242, 0.25); color: #b3a6ff; }
 
-body.style-obsidian #outline-box { border-color: #333; }
+body.style-obsidian #tree-header,
+body.style-obsidian #outline-header { border-color: #333; }
+
+body.style-obsidian .panel-header,
+body.style-obsidian .panel-toggle { color: #8a8a8a; }
+body.style-obsidian .panel-toggle:hover { background: #2f2f2f; }
 
 body.style-obsidian #content { background: #1e1e1e; }
 
@@ -156,8 +161,7 @@ body.style-obsidian #searchbar button:hover { background: #3a3a3a; }
 body.style-obsidian mark.tot-search { background: #6b4d00; color: #dcddde; }
 body.style-obsidian mark.tot-search.current { background: #d4a72c; color: #1e1e1e; }
 
-body.style-obsidian #sidebar-resizer:hover,
-body.style-obsidian #outline-resizer:hover { background: #333; }
+body.style-obsidian #sidebar-resizer:hover { background: #333; }
 
 
 /* ---- 代码语法高亮（highlight.js token 配色） ---- */

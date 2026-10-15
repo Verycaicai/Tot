@@ -125,7 +125,12 @@ body.style-monokai #outline a { color: #f8f8f2; }
 body.style-monokai #file-tree a.active,
 body.style-monokai #outline a.active { background: #3e3d32; color: #a6e22e; }
 
-body.style-monokai #outline-box { border-color: #49483e; }
+body.style-monokai #tree-header,
+body.style-monokai #outline-header { border-color: #49483e; }
+
+body.style-monokai .panel-header,
+body.style-monokai .panel-toggle { color: #75715e; }
+body.style-monokai .panel-toggle:hover { background: #3e3d32; }
 
 body.style-monokai #content { background: #272822; }
 
@@ -157,8 +162,7 @@ body.style-monokai #searchbar button:hover { background: #49483e; }
 body.style-monokai mark.tot-search { background: #6b4d00; color: #f8f8f2; }
 body.style-monokai mark.tot-search.current { background: #d4a72c; color: #272822; }
 
-body.style-monokai #sidebar-resizer:hover,
-body.style-monokai #outline-resizer:hover { background: #49483e; }
+body.style-monokai #sidebar-resizer:hover { background: #49483e; }
 
 
 /* ---- 代码语法高亮（highlight.js token 配色） ---- */

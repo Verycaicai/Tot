@@ -50,9 +50,9 @@ md-browser/
 
 ### 进程分工
 
-- **主进程**：原生菜单（menu-command 推送）、目录/文件对话框、递归扫描（只收 .md/.markdown，跳过 `.git`/`node_modules`）、readFile 按需读、writeFile 落盘（isInside 边界校验）、`protocol.handle('mdfile')` 读图片、config.json 记住 lastDir
-- **preload**：contextBridge 白名单 7 个 API
-- **渲染进程**：全部 UI 逻辑
+- **主进程**：原生菜单（menu-command 推送）、目录/文件对话框、盘符枚举 + 单层扫描 scan-children（只收 .md/.markdown 与子目录，跳过点开头目录与系统缓存目录）、readFile/writeFile/mdfile 按需读写（knownDirs 链条式信任边界——渲染层只能扩展已见过的目录）、config.json 存最近打开
+- **preload**：contextBridge 白名单 11 个 API
+- **渲染进程**：全部 UI 逻辑（树懒加载 + 路径聚焦、面板互斥、标签页/编辑/搜索/大纲）
 
 ### 多标签页
 
@@ -88,7 +88,13 @@ md-browser/
 
 ### 面板拖拽
 
-- document 级 pointermove/up + dragState 标志（不用 setPointerCapture——合成 PointerEvent 无真实 pointerId 会抛错）；sidebar width clamp 200–600px、outline height clamp 120–600px（inline px 覆盖百分比）
+- document 级 pointermove/up + dragState 标志（不用 setPointerCapture——合成 PointerEvent 无真实 pointerId 会抛错）；侧栏宽度 clamp 200–600px（大纲高度分隔条已随面板互斥移除）
+
+### 树与面板（1.1.1 重构）
+
+- 树：`我的电脑` 根（details[data-pc-root]）→ 盘符 `C:\` 等 → 单层懒加载（toggle 事件触发 scan-children，scanInflight 合并并发，data-loaded 标记）；`walkPath` 逐级拼接链（盘符带尾反斜杠、子目录不带，须按 `endsWith('\\')` 区分）逐层展开
+- 路径聚焦：walkPath 对链上每层只留「路径上的下一个文件夹」（.path-hidden）、末层只留 md 文件（.dir-hidden）；doClose(0) 清全部隐藏类恢复全量浏览
+- 面板互斥：setPanelCollapsed 双向联动（panelSync 防递归）——展开一个折叠另一个、折叠一个展开另一个；大纲标题条在内容上方，折叠时 `margin-top: auto` 钉底
 
 ### 菜单
 
@@ -110,10 +116,21 @@ md-browser/
 - **M11 12 套风格 + 菜单扩展 + 保存按钮 + 语法高亮 + Callout** — ✅ [dev:check3] 12 套逐一断言（body class、唯一 enabled link、optgroup=4、options=12、localStorage、正文与外壳计算样式、pre 底色、callout 配色），24 张截图目检；[dev:edit0/5b] 保存按钮灰/可用态；[dev:check1] hljsSpans 断言 token span 生成、callouts 断言 5 类标注块与中文标题
 - **M12 收尾** — 本版最终验证 + 1.1.0 打包 + 推送
 
+## 1.1.1 修正（我的电脑树 / 最近打开 / 面板互斥 / 路径聚焦）
+
+- 目录浏览以「我的电脑」为根：盘符（A-Z 枚举）→ 文件夹 → 文件，树懒加载（details toggle 触发 scan-children，并发合并）；主进程 knownDirs 链条式信任边界（渲染层只能扩展已见过的目录）
+- 去掉上次打开记忆：启动不再自动重开文件/目录；文件菜单加「最近打开」子菜单（config.json `recent`，去重、最多 3 个、最新在前）
+- 菜单 打开文件 / 打开文件夹 都保留：选择后在树中逐层定位展开（打开文件还会自动打开该文件）
+- 面板互斥展开：树与大纲同一时刻只展开一个（展开一个就折叠另一个、折叠一个就展开另一个）；折叠的面板只留标题条钉在侧沿（大纲钉底、目录钉顶），大纲标签下移即内容折叠不显示；大纲标题条位于内容上方
+- 路径聚焦：定位展开时链上每一级只显示路径上的下一个文件夹（.path-hidden），末级只显示该目录下的 MD 文档（.dir-hidden）；关闭全部标签后恢复全量浏览
+- 大纲高度分隔条移除（面板互斥后两栏不再同显，高度拖拽失去意义）；侧栏宽度拖拽 + 持久化保留（localStorage `tot-panels`）
+- 面板标题条折叠三角 11px → 22px（标签条高度收紧）；文件标签页顶部圆角 8px 8px 0 0
+- 最近打开的文件若已被删除：点击时自动从索引移除并在状态栏提示（openByPath fs.access 预检 + open-file-error 推送；渲染层 readFile 失败兜底）
+- 验证：[dev:panels1-6] 状态断言（互斥/聚焦/dirHidden/pathHidden/treeDirs）+ 亮暗截图；[dev:drag1-3] 侧栏宽度 clamp + 持久化；[dev:start] 盘符树；[dev:recent] 最近打开菜单与 config 一致；[dev:recent-missing] 被删文件自动出索引 + 提示
+
 ## 已知限制（1.1）
 
 - BOM 丢失：读文件按 utf8 解码，带 BOM 的 md 保存后 BOM 不保留（内容不变）
-- 面板尺寸不持久化：sidebar/outline 拖动尺寸重启后还原默认
 - 跨目录旧 tab 只读：换目录后旧 tab 仍可看缓存内容，保存被 isInside 拒绝并回显错误
 - 不监听文件系统变化：外部修改文件需重开
 - 不支持内联 HTML（安全起见全部转义）

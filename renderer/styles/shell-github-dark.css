@@ -33,7 +33,12 @@ body.style-github-dark #outline a { color: #e6edf3; }
 body.style-github-dark #file-tree a.active,
 body.style-github-dark #outline a.active { background: #1f6feb33; color: #58a6ff; }
 
-body.style-github-dark #outline-box { border-color: #30363d; }
+body.style-github-dark #tree-header,
+body.style-github-dark #outline-header { border-color: #30363d; }
+
+body.style-github-dark .panel-header,
+body.style-github-dark .panel-toggle { color: #8b949e; }
+body.style-github-dark .panel-toggle:hover { background: #21262d; }
 
 body.style-github-dark #content { background: #0d1117; }
 
@@ -69,5 +74,4 @@ body.style-github-dark #searchbar button:hover { background: #30363d; }
 body.style-github-dark mark.tot-search { background: #674d00; color: #e6edf3; }
 body.style-github-dark mark.tot-search.current { background: #b8860b; color: #0d1117; }
 
-body.style-github-dark #sidebar-resizer:hover,
-body.style-github-dark #outline-resizer:hover { background: #30363d; }
+body.style-github-dark #sidebar-resizer:hover { background: #30363d; }

@@ -124,7 +124,12 @@ body.style-typora-night #outline a { color: #b8bfc6; }
 body.style-typora-night #file-tree a.active,
 body.style-typora-night #outline a.active { background: #424b54; color: #6ab0f3; }
 
-body.style-typora-night #outline-box { border-color: #4c5258; }
+body.style-typora-night #tree-header,
+body.style-typora-night #outline-header { border-color: #4c5258; }
+
+body.style-typora-night .panel-header,
+body.style-typora-night .panel-toggle { color: #9da3a9; }
+body.style-typora-night .panel-toggle:hover { background: #424b54; }
 
 body.style-typora-night #content { background: #363b40; }
 
@@ -156,8 +161,7 @@ body.style-typora-night #searchbar button:hover { background: #4c5258; }
 body.style-typora-night mark.tot-search { background: #6b4d00; color: #b8bfc6; }
 body.style-typora-night mark.tot-search.current { background: #d4a72c; color: #2f3337; }
 
-body.style-typora-night #sidebar-resizer:hover,
-body.style-typora-night #outline-resizer:hover { background: #4c5258; }
+body.style-typora-night #sidebar-resizer:hover { background: #4c5258; }
 
 
 /* ---- 代码语法高亮（highlight.js token 配色） ---- */

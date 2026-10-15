@@ -124,7 +124,12 @@ body.style-dracula #outline a { color: #f8f8f2; }
 body.style-dracula #file-tree a.active,
 body.style-dracula #outline a.active { background: #44475a; color: #8be9fd; }
 
-body.style-dracula #outline-box { border-color: #44475a; }
+body.style-dracula #tree-header,
+body.style-dracula #outline-header { border-color: #44475a; }
+
+body.style-dracula .panel-header,
+body.style-dracula .panel-toggle { color: #6272a4; }
+body.style-dracula .panel-toggle:hover { background: #44475a; }
 
 body.style-dracula #content { background: #282a36; }
 
@@ -156,8 +161,7 @@ body.style-dracula #searchbar button:hover { background: #6272a4; }
 body.style-dracula mark.tot-search { background: #6b4d00; color: #f8f8f2; }
 body.style-dracula mark.tot-search.current { background: #d4a72c; color: #282a36; }
 
-body.style-dracula #sidebar-resizer:hover,
-body.style-dracula #outline-resizer:hover { background: #44475a; }
+body.style-dracula #sidebar-resizer:hover { background: #44475a; }
 
 
 /* ---- 代码语法高亮（highlight.js token 配色） ---- */

@@ -3,18 +3,26 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('tot', {
-  // 打开目录对话框，返回 { root, tree } 或 null（取消）
-  selectDirectory: () => ipcRenderer.invoke('select-directory'),
-  // 打开单个 md 文件（菜单 文件 → 打开文件），返回 { root, tree, file } 或 null
-  selectFile: () => ipcRenderer.invoke('select-file'),
-  // 读取所选目录内文件的文本内容
+  // 树懒加载：请求某目录的直接子项（子目录 + md 文件），主进程按已知范围放行
+  scanChildren: (dir) => ipcRenderer.invoke('scan-children', dir),
+  // 读取可浏览范围内文件的文本内容
   readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
   // 保存当前编辑内容（菜单 文件 → 保存 / Ctrl+S）
   writeFile: (filePath, text) => ipcRenderer.invoke('write-file', filePath, text),
   // 批量把 md 内图片相对路径解析为 mdfile:// URL
   resolveImages: (filePath, srcs) => ipcRenderer.invoke('resolve-images', filePath, srcs),
-  // 主进程主动推送目录（开发模式 TOT_OPEN_DIR 用）
-  onDirectorySelected: (cb) => ipcRenderer.on('directory-selected', (_e, data) => cb(data)),
-  // 主进程菜单命令（open-file / open-folder / save）
+  // 打开文件后上报，记入文件菜单的「最近打开」
+  addRecent: (filePath) => ipcRenderer.invoke('add-recent', filePath),
+  // 主进程推送「我的电脑」盘符列表（启动）
+  onInitTree: (cb) => ipcRenderer.on('init-tree', (_e, data) => cb(data)),
+  // 主进程通知：树定位展开到某目录（菜单 打开文件夹）
+  onLocatePath: (cb) => ipcRenderer.on('locate-path', (_e, data) => cb(data)),
+  // 主进程通知：定位展开并打开某文件（菜单 打开文件 / 最近打开）
+  onOpenFilePath: (cb) => ipcRenderer.on('open-file-path', (_e, data) => cb(data)),
+  // 主进程通知：要打开的文件已不存在（已从最近打开移除）
+  onOpenFileError: (cb) => ipcRenderer.on('open-file-error', (_e, data) => cb(data)),
+  // 主进程菜单命令（保存）
   onMenuCommand: (cb) => ipcRenderer.on('menu-command', (_e, cmd) => cb(cmd)),
+  // 原生菜单栏明暗跟随渲染风格
+  setTheme: (dark) => ipcRenderer.invoke('set-theme', dark),
 });

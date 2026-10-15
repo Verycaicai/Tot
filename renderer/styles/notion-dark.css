@@ -123,7 +123,12 @@ body.style-notion-dark #outline a { color: #d4d4d4; }
 body.style-notion-dark #file-tree a.active,
 body.style-notion-dark #outline a.active { background: rgba(82, 156, 202, 0.25); color: #529cca; }
 
-body.style-notion-dark #outline-box { border-color: #303030; }
+body.style-notion-dark #tree-header,
+body.style-notion-dark #outline-header { border-color: #303030; }
+
+body.style-notion-dark .panel-header,
+body.style-notion-dark .panel-toggle { color: #8a8a8a; }
+body.style-notion-dark .panel-toggle:hover { background: #2a2a2a; }
 
 body.style-notion-dark #content { background: #191919; }
 
@@ -155,8 +160,7 @@ body.style-notion-dark #searchbar button:hover { background: #3a3a3a; }
 body.style-notion-dark mark.tot-search { background: #6b4d00; color: #d4d4d4; }
 body.style-notion-dark mark.tot-search.current { background: #d4a72c; color: #191919; }
 
-body.style-notion-dark #sidebar-resizer:hover,
-body.style-notion-dark #outline-resizer:hover { background: #303030; }
+body.style-notion-dark #sidebar-resizer:hover { background: #303030; }
 
 
 /* ---- 代码语法高亮（highlight.js token 配色） ---- */

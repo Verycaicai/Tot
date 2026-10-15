@@ -41,19 +41,20 @@ function activeScroll() {
 // ---------- 风格切换 ----------
 
 // 风格注册表：每个 id 对应一个 body class + 若干 css 文件（link 惰性创建）
+// dark 标记驱动原生菜单栏明暗（Windows 菜单栏随应用深色模式着色）
 const STYLES = [
-  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', files: ['../lib/github-markdown-light.css', 'styles/github-light.css', 'styles/callouts.css'] },
-  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', files: ['../lib/github-markdown-dark.css', 'styles/github-dark.css', 'styles/callouts-dark.css', 'styles/shell-github-dark.css'] },
-  { id: 'minimal', group: '极简', label: '极简', files: ['styles/minimal.css', 'styles/callouts.css'] },
-  { id: 'rtd', group: '文档', label: 'Read the Docs', files: ['styles/rtd.css', 'styles/callouts.css'] },
-  { id: 'notion-light', group: '文档', label: 'Notion 亮', files: ['styles/notion-light.css', 'styles/callouts.css'] },
-  { id: 'notion-dark', group: '文档', label: 'Notion 暗', files: ['styles/notion-dark.css', 'styles/callouts-dark.css'] },
-  { id: 'typora-white', group: '文档', label: 'Typora White', files: ['styles/typora-white.css', 'styles/callouts.css'] },
-  { id: 'typora-night', group: '文档', label: 'Typora Night', files: ['styles/typora-night.css', 'styles/callouts-dark.css'] },
-  { id: 'obsidian', group: '文档', label: 'Obsidian', files: ['styles/obsidian.css', 'styles/callouts-dark.css'] },
-  { id: 'dracula', group: '代码编辑器', label: 'Dracula', files: ['styles/dracula.css', 'styles/callouts-dark.css'] },
-  { id: 'nord', group: '代码编辑器', label: 'Nord', files: ['styles/nord.css', 'styles/callouts-dark.css'] },
-  { id: 'monokai', group: '代码编辑器', label: 'Monokai', files: ['styles/monokai.css', 'styles/callouts-dark.css'] },
+  { id: 'github-light', group: 'GitHub', label: 'GitHub 亮', dark: false, files: ['../lib/github-markdown-light.css', 'styles/github-light.css', 'styles/callouts.css'] },
+  { id: 'github-dark', group: 'GitHub', label: 'GitHub 暗', dark: true, files: ['../lib/github-markdown-dark.css', 'styles/github-dark.css', 'styles/callouts-dark.css', 'styles/shell-github-dark.css'] },
+  { id: 'minimal', group: '极简', label: '极简', dark: false, files: ['styles/minimal.css', 'styles/callouts.css'] },
+  { id: 'rtd', group: '文档', label: 'Read the Docs', dark: false, files: ['styles/rtd.css', 'styles/callouts.css'] },
+  { id: 'notion-light', group: '文档', label: 'Notion 亮', dark: false, files: ['styles/notion-light.css', 'styles/callouts.css'] },
+  { id: 'notion-dark', group: '文档', label: 'Notion 暗', dark: true, files: ['styles/notion-dark.css', 'styles/callouts-dark.css'] },
+  { id: 'typora-white', group: '文档', label: 'Typora White', dark: false, files: ['styles/typora-white.css', 'styles/callouts.css'] },
+  { id: 'typora-night', group: '文档', label: 'Typora Night', dark: true, files: ['styles/typora-night.css', 'styles/callouts-dark.css'] },
+  { id: 'obsidian', group: '文档', label: 'Obsidian', dark: true, files: ['styles/obsidian.css', 'styles/callouts-dark.css'] },
+  { id: 'dracula', group: '代码编辑器', label: 'Dracula', dark: true, files: ['styles/dracula.css', 'styles/callouts-dark.css'] },
+  { id: 'nord', group: '代码编辑器', label: 'Nord', dark: true, files: ['styles/nord.css', 'styles/callouts-dark.css'] },
+  { id: 'monokai', group: '代码编辑器', label: 'Monokai', dark: true, files: ['styles/monokai.css', 'styles/callouts-dark.css'] },
 ];
 
 // 老版本 localStorage 存的 light/dark 迁移到新 id
@@ -89,6 +90,8 @@ function applyStyle(id) {
   document.body.className = `style-${id}`;
   $('#style-select').value = id;
   localStorage.setItem('tot-style', id);
+  // 原生菜单栏明暗跟随渲染风格
+  window.tot.setTheme(STYLES.find((s) => s.id === id).dark);
 }
 
 // 由注册表生成选项分组，杜绝两份清单漂移
@@ -114,58 +117,61 @@ $('#style-select').addEventListener('change', (e) => {
 state.style = normStyle(state.style);
 applyStyle(state.style);
 
-// ---------- 菜单命令（主进程 File 菜单触发） ----------
+// ---------- 菜单命令（主进程 File 菜单触发，打开文件/文件夹由主进程处理对话框） ----------
 
 window.tot.onMenuCommand((cmd) => {
-  if (cmd === 'open-folder') openDirectory();
-  else if (cmd === 'open-file') openSingleFile();
-  else if (cmd === 'save') saveActiveTab();
+  if (cmd === 'save') saveActiveTab();
 });
 
-async function openDirectory() {
-  const data = await window.tot.selectDirectory();
-  if (!data) return;
-  renderTree(data);
-}
+// ---------- 目录与文件树（我的电脑 → 盘符 → 文件夹 → 文件，点开哪层扫哪层） ----------
 
-// 菜单 文件 → 打开文件：以文件所在目录为根渲染树，并打开该文件
-async function openSingleFile() {
-  const data = await window.tot.selectFile();
-  if (!data) return;
-  renderTree(data);
-  openFile(data.file);
-}
-
-// ---------- 目录与文件树 ----------
-
-// 开发模式（TOT_OPEN_DIR）下主进程直接推送目录数据
-window.tot.onDirectorySelected(renderTree);
-
-function renderTree(data) {
-  state.root = data.root;
+// 启动：构建「我的电脑」根节点，下面挂盘符
+window.tot.onInitTree((data) => {
   const treeEl = $('#file-tree');
   treeEl.textContent = '';
-  if (!data.tree.length) {
-    const p = document.createElement('p');
-    p.className = 'tree-empty';
-    p.textContent = '没有找到 Markdown 文件';
-    treeEl.append(p);
-  } else {
-    treeEl.append(buildTree(data.tree));
-  }
+  const li = document.createElement('li');
+  const root = document.createElement('details');
+  root.open = true;
+  root.dataset.pcRoot = '1';
+  const summary = document.createElement('summary');
+  summary.textContent = '我的电脑';
+  root.append(summary, buildTree(data.drives));
+  li.append(root);
+  const ul = document.createElement('ul');
+  ul.append(li);
+  treeEl.append(ul);
+  $('#empty p').textContent = '选择一个 Markdown 文件开始浏览';
   restoreTreeActive();
-}
+});
+
+// 菜单 打开文件夹：树从我的电脑逐层定位展开到该目录
+window.tot.onLocatePath(async (data) => {
+  await walkPath(data.path);
+  document.querySelector(`#file-tree details[data-path="${CSS.escape(data.path)}"] summary`)?.scrollIntoView({ block: 'center' });
+});
+
+// 菜单 打开文件 / 最近打开：定位展开并打开该文件
+window.tot.onOpenFilePath(async (data) => {
+  await openFile(data.path);
+});
+
+// 菜单 最近打开的文件已被删除：主进程已从索引移除，这里给出提示
+window.tot.onOpenFileError(() => {
+  showStatus('文件不存在，已从「最近打开」中移除', true);
+});
 
 function buildTree(entries) {
   const ul = document.createElement('ul');
-  for (const entry of entries) {
+  for (const entry of (entries || [])) {
     const li = document.createElement('li');
     if (entry.type === 'dir') {
       const details = document.createElement('details');
-      details.open = true;
+      details.open = false; // 目录默认折叠，只展开打开文件所在路径（walkPath）
+      details.dataset.path = entry.path;
       const summary = document.createElement('summary');
       summary.textContent = entry.name;
       details.append(summary, buildTree(entry.children));
+      details.addEventListener('toggle', () => { if (details.open) loadChildren(details); });
       li.append(details);
     } else {
       const a = document.createElement('a');
@@ -183,6 +189,53 @@ function buildTree(entries) {
   return ul;
 }
 
+// 懒加载：目录首次展开时扫描其直接子项并挂到树上（同路径并发请求合并）
+const scanInflight = new Map();
+
+async function loadChildren(details) {
+  const p = details.dataset.path;
+  if (!p || details.dataset.loaded === '1') return;
+  if (!scanInflight.has(p)) {
+    scanInflight.set(p, window.tot.scanChildren(p)
+      .then(({ tree }) => {
+        details.append(buildTree(tree));
+        details.dataset.loaded = '1';
+      })
+      .catch(() => { details.dataset.loaded = '1'; })
+      .finally(() => scanInflight.delete(p)));
+  }
+  await scanInflight.get(p);
+}
+
+// 逐层懒加载展开到 p：文件展开到其父目录，目录展开到其自身（含子项）。
+// 注意盘符路径带尾反斜杠（C:\），子目录路径不带（path.join 产物），逐级拼接要区分。
+// 展开的同时做路径聚焦：链上每一级只显示路径上的下一个文件夹（兄弟文件夹与无关文件
+// 隐藏，.path-hidden），末级只显示该目录下的 MD 文档（子文件夹隐藏，.dir-hidden）。
+// 链外的层保持原样——空态手动浏览时没有聚焦，全部正常显示。
+async function walkPath(p) {
+  const isFile = /\.(md|markdown)$/i.test(p);
+  const parts = p.split(/[\\/]/);
+  const chain = [parts[0] + '\\'];
+  for (let i = 1; i < parts.length - (isFile ? 1 : 0); i++) {
+    const prev = chain[chain.length - 1];
+    chain.push(prev.endsWith('\\') ? prev + parts[i] : prev + '\\' + parts[i]);
+  }
+  for (let i = 0; i < chain.length; i++) {
+    const d = document.querySelector(`#file-tree details[data-path="${CSS.escape(chain[i])}"]`);
+    if (!d) break; // 链条断开（路径不在可浏览盘符下），停止
+    if (!d.open) d.open = true; // 触发 toggle 开始懒加载
+    await loadChildren(d); // 等该层加载完成，下一层节点才会出现
+    const next = chain[i + 1];
+    d.querySelectorAll(':scope > ul > li').forEach((li) => {
+      li.classList.remove('path-hidden', 'dir-hidden');
+      const childDir = li.querySelector(':scope > details');
+      const isFileLi = li.querySelector(':scope > a');
+      const keep = next ? (childDir && childDir.dataset.path === next) : isFileLi;
+      if (!keep) li.classList.add(next ? 'path-hidden' : 'dir-hidden');
+    });
+  }
+}
+
 // ---------- 标签页 ----------
 
 function baseName(p) {
@@ -196,7 +249,13 @@ async function openFile(filePath, linkEl) {
     await activateTab(existing);
   } else {
     const seq = ++openSeq;
-    const text = await window.tot.readFile(filePath);
+    let text;
+    try {
+      text = await window.tot.readFile(filePath);
+    } catch {
+      showStatus('打开失败：文件不存在或无法读取', true);
+      return;
+    }
     if (seq !== openSeq) return; // 已有更新的打开请求，丢弃本次
     const tab = {
       id: `tab-${seq}`,
@@ -215,6 +274,12 @@ async function openFile(filePath, linkEl) {
     document.querySelectorAll('#file-tree a.active').forEach((a) => a.classList.remove('active'));
     linkEl.classList.add('active');
   }
+  // 记入文件菜单的「最近打开」
+  window.tot.addRecent(filePath);
+  // 树定位：懒加载展开到该文件所在路径（路径聚焦），并滚进可视区
+  await walkPath(filePath);
+  restoreTreeActive();
+  document.querySelector(`#file-tree a[title="${CSS.escape(filePath)}"]`)?.scrollIntoView({ block: 'center' });
 }
 
 // 新开标签页：渲染到预览区
@@ -225,6 +290,11 @@ async function renderTab(tab) {
   showPanes('preview');
   await renderMarkdown($('#viewer'), tab.text, tab.path);
   rebuildOutline();
+  // 打开文档的默认布局：展开大纲、折叠目录（文档无大纲时保持目录展开）
+  if (!$('#outline-header').hidden) {
+    setPanelCollapsed('outline-collapsed', false);
+    setPanelCollapsed('tree-collapsed', true);
+  }
   activeScroll().scrollTop = 0;
   updateTabbar();
   restoreTreeActive();
@@ -313,8 +383,17 @@ function doClose(i) {
     $('#panes').hidden = true;
     $('#empty').hidden = false;
     $('#edit-toggle').disabled = true;
-    $('#outline-box').hidden = true;
+    $('#outline-header').hidden = true;
+    $('#outline-body').hidden = true;
     $('#outline').textContent = '';
+    // 回到空态默认布局：目录展开、大纲折叠
+    setPanelCollapsed('tree-collapsed', false);
+    setPanelCollapsed('outline-collapsed', true);
+    // 清空路径聚焦：回到空态后恢复树的全量浏览
+    document.querySelectorAll('#file-tree li.path-hidden, #file-tree li.dir-hidden')
+      .forEach((li) => li.classList.remove('path-hidden', 'dir-hidden'));
+    // 没有打开的文件：全部目录收回折叠（保留「我的电脑」根节点展开，盘符仍可见）
+    document.querySelectorAll('#file-tree details:not([data-pc-root])').forEach((d) => { d.open = false; });
     restoreTreeActive();
     updateTabbar();
     return;
@@ -574,22 +653,54 @@ $('#search-next').addEventListener('click', () => moveSearch(1));
 $('#search-prev').addEventListener('click', () => moveSearch(-1));
 $('#search-close').addEventListener('click', closeSearch);
 
-// ---------- 面板拖拽 ----------
+// ---------- 面板折叠 / 侧栏宽度拖拽 / 尺寸持久化 ----------
 
-let dragState = null; // { kind:'sidebar'|'outline', startX, startY, startW, startH }
+let dragState = null; // { startX, startW }
 
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
 }
 
-function startDrag(kind, e) {
-  dragState = {
-    kind,
-    startX: e.clientX,
-    startY: e.clientY,
-    startW: $('#sidebar').clientWidth,
-    startH: $('#outline-box').clientHeight,
-  };
+{
+  try {
+    const saved = JSON.parse(localStorage.getItem('tot-panels') || 'null');
+    if (saved && Number.isFinite(saved.w)) $('#sidebar').style.width = clamp(saved.w, 200, 600) + 'px';
+  } catch {}
+}
+
+function savePanelSizes() {
+  localStorage.setItem('tot-panels', JSON.stringify({
+    w: Math.round($('#sidebar').clientWidth),
+  }));
+}
+
+// 折叠状态挂 #sidebar 类（body.className 被渲染风格占用）；只存尺寸不存折叠态。
+// 树与大纲互斥：展开一个就折叠另一个、折叠一个就展开另一个——同一时刻只有一个面板展开；
+// 折叠的面板只留标题条钉在侧沿（大纲钉底、目录钉顶），对应内容随之不显示
+let panelSync = false;
+function setPanelCollapsed(kind, collapsed) {
+  $('#sidebar').classList.toggle(kind, collapsed);
+  const btn = kind === 'tree-collapsed' ? $('#tree-toggle') : $('#outline-toggle');
+  btn.textContent = collapsed ? '▸' : '▾';
+  if (panelSync) return;
+  panelSync = true;
+  if (kind === 'tree-collapsed') {
+    if (!$('#outline-header').hidden) setPanelCollapsed('outline-collapsed', !collapsed);
+  } else {
+    setPanelCollapsed('tree-collapsed', !collapsed);
+  }
+  panelSync = false;
+}
+
+$('#tree-toggle').addEventListener('click', () => {
+  setPanelCollapsed('tree-collapsed', !$('#sidebar').classList.contains('tree-collapsed'));
+});
+$('#outline-toggle').addEventListener('click', () => {
+  setPanelCollapsed('outline-collapsed', !$('#sidebar').classList.contains('outline-collapsed'));
+});
+
+function startDrag(e) {
+  dragState = { startX: e.clientX, startW: $('#sidebar').clientWidth };
   e.preventDefault();
 }
 
@@ -597,19 +708,18 @@ function startDrag(kind, e) {
 // 改为 document 级 move/up + 标志位
 document.addEventListener('pointermove', (e) => {
   if (!dragState) return;
-  if (dragState.kind === 'sidebar') {
-    $('#sidebar').style.width = clamp(dragState.startW + e.clientX - dragState.startX, 200, 600) + 'px';
-  } else {
-    $('#outline-box').style.height = clamp(dragState.startH + e.clientY - dragState.startY, 120, 600) + 'px';
-  }
+  $('#sidebar').style.width = clamp(dragState.startW + e.clientX - dragState.startX, 200, 600) + 'px';
 });
 
-document.addEventListener('pointerup', () => { dragState = null; });
+document.addEventListener('pointerup', () => {
+  if (!dragState) return;
+  savePanelSizes();
+  dragState = null;
+});
 // 指针拖出窗口再松手会丢 pointerup：离开文档时兜底结束拖拽
 document.addEventListener('pointerleave', () => { dragState = null; });
 
-$('#sidebar-resizer').addEventListener('pointerdown', (e) => startDrag('sidebar', e));
-$('#outline-resizer').addEventListener('pointerdown', (e) => startDrag('outline', e));
+$('#sidebar-resizer').addEventListener('pointerdown', (e) => startDrag(e));
 
 // ---------- 全局快捷键（渲染层只处理无菜单冲突的键；Ctrl+S/O 走主进程菜单） ----------
 
@@ -652,8 +762,11 @@ function rebuildOutline() {
   const ul = $('#outline');
   ul.textContent = '';
   const headings = viewer.querySelectorAll('h1,h2,h3,h4,h5,h6');
-  $('#outline-box').hidden = headings.length === 0;
-  $('#outline-resizer').hidden = headings.length === 0;
+  const hasHeadings = headings.length > 0;
+  $('#outline-header').hidden = !hasHeadings;
+  $('#outline-body').hidden = !hasHeadings;
+  // 无大纲时树必须可见，否则侧栏只剩一个标题条
+  if (!hasHeadings) setPanelCollapsed('tree-collapsed', false);
   headings.forEach((h) => {
     const li = document.createElement('li');
     li.className = `level-${h.tagName[1]}`;

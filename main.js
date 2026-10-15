@@ -21,7 +21,7 @@ if (typeof electronRequire === 'string') {
   return;
 }
 
-const { app, BrowserWindow, ipcMain, dialog, protocol, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, protocol, Menu, nativeTheme } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
 
@@ -33,37 +33,48 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'mdfile', privileges: { standard: true, secure: true, supportFetchAPI: true } },
 ]);
 
-let rootDir = null; // 当前选中的根目录，作为读文件 / 图片协议的边界
+// 渲染进程可访问的路径边界：已扫描过的目录（树懒加载链条）。
+// 渲染层只能扩展它已见到的目录（scan-children 逐层放行），读/写/图片协议都限于此。
+const knownDirs = new Set();
 let win = null;
 
 const SKIP_DIRS = new Set(['node_modules', '.git']);
 
-// ---------- 目录扫描 ----------
+// ---------- 目录扫描（树懒加载：点开哪层扫哪层） ----------
 
-// 递归收集 dir 下所有 .md / .markdown 文件；跳过 .git / node_modules 等目录；
-// 不含任何 md 的空目录不出现在树里；读不了的目录静默跳过。
-async function scanDir(dir) {
+// 读取 dir 的直接子项：子目录 + .md / .markdown 文件；跳过 .git / node_modules
+// 与点开头的目录；读不了的目录静默返回空。
+async function scanChildren(dir) {
   let items;
   try {
     items = await fs.readdir(dir, { withFileTypes: true });
   } catch {
     return [];
   }
-  const dirs = [];
-  const files = [];
+  const entries = [];
   for (const item of items) {
     if (item.isDirectory()) {
       if (SKIP_DIRS.has(item.name) || item.name.startsWith('.')) continue;
-      const children = await scanDir(path.join(dir, item.name));
-      if (children.length) dirs.push({ name: item.name, path: path.join(dir, item.name), type: 'dir', children });
+      entries.push({ name: item.name, path: path.join(dir, item.name), type: 'dir' });
     } else if (item.isFile() && /\.(md|markdown)$/i.test(item.name)) {
-      files.push({ name: item.name, path: path.join(dir, item.name), type: 'file' });
+      entries.push({ name: item.name, path: path.join(dir, item.name), type: 'file' });
     }
   }
-  const cmp = (a, b) => a.name.localeCompare(b.name, 'zh-CN', { numeric: true });
-  dirs.sort(cmp);
-  files.sort(cmp);
-  return [...dirs, ...files];
+  entries.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN', { numeric: true }));
+  return entries;
+}
+
+// 枚举存在的盘符（A-Z），作为「我的电脑」根节点下的顶层
+async function listDrives() {
+  const drives = [];
+  for (let c = 65; c <= 90; c++) {
+    const letter = String.fromCharCode(c);
+    try {
+      await fs.access(`${letter}:\\`);
+      drives.push({ name: `${letter}:\\`, path: `${letter}:\\`, type: 'dir' });
+    } catch {}
+  }
+  return drives;
 }
 
 // ---------- 路径边界 ----------
@@ -73,16 +84,30 @@ function isInside(root, p) {
   return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
 }
 
-// ---------- 记住上次目录 ----------
+// 规范化比较（Windows 大小写不敏感）
+function samePath(a, b) {
+  return path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
+}
 
-// userData/config.json：{ lastDir }。渲染层不可信，路径只由主进程的对话框产生
+// 文件/图片访问边界：盘符根下的文件随盘符可见，其余须在已浏览目录内
+// （盘符本身不入 knownDirs，否则 isInside 会把整盘放行）
+function pathAllowed(p) {
+  const parent = path.dirname(p);
+  if (/^[A-Za-z]:[\\/]$/.test(parent)) return true;
+  return [...knownDirs].some((k) => isInside(k, p));
+}
+
+// ---------- 最近打开（文件菜单索引，最多 3 个） ----------
+
+// userData/config.json：{ recent: [] }。路径由主进程校验后写入
 const configPath = () => path.join(app.getPath('userData'), 'config.json');
 
 async function loadConfig() {
   try {
-    return JSON.parse(await fs.readFile(configPath(), 'utf8'));
+    const cfg = JSON.parse(await fs.readFile(configPath(), 'utf8'));
+    return Array.isArray(cfg.recent) ? cfg : { ...cfg, recent: [] };
   } catch {
-    return {};
+    return { recent: [] };
   }
 }
 
@@ -92,30 +117,50 @@ async function saveConfig(patch) {
   await fs.writeFile(configPath(), JSON.stringify(cfg, null, 2), 'utf8');
 }
 
+// 记入最近打开（去重、只留 3 个）并刷新文件菜单里的索引
+async function addRecent(filePath) {
+  const cfg = await loadConfig();
+  const recent = [filePath, ...cfg.recent.filter((p) => p !== filePath)].slice(0, 3);
+  await saveConfig({ recent });
+  await buildMenu();
+}
+
 // ---------- IPC ----------
 
-ipcMain.handle('select-directory', async () => {
-  const res = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
-  if (res.canceled || !res.filePaths.length) return null;
-  rootDir = res.filePaths[0];
-  await saveConfig({ lastDir: rootDir });
-  return { root: rootDir, tree: await scanDir(rootDir) };
+// 已扫过列表的盘符（其直接子目录才放行——渲染层看不到列表就无从点开）
+const drivesSeen = new Set();
+
+// 树懒加载放行：盘符本身、已见盘符的直接子目录、或已知目录的直接子目录（链条式信任，逐层扩展）
+async function dirAllowed(dir) {
+  if (/^[A-Za-z]:[\\/]$/.test(dir)) return true;
+  const parent = path.dirname(dir);
+  if (/^[A-Za-z]:[\\/]$/.test(parent)) return drivesSeen.has(parent.toLowerCase());
+  return [...knownDirs].some((k) => samePath(k, parent));
+}
+
+// 主进程发起的打开（菜单打开文件 / 最近打开 / 开发钩子）：先放行其父目录
+function markOpenable(filePath) {
+  const parent = path.dirname(filePath);
+  if (!/^[A-Za-z]:[\\/]$/.test(parent)) knownDirs.add(parent);
+}
+
+// 树懒加载：渲染层请求 dir 的直接子项
+ipcMain.handle('scan-children', async (_e, dir) => {
+  if (typeof dir !== 'string' || !(await dirAllowed(dir))) throw new Error('目录不在可浏览范围内');
+  const tree = await scanChildren(dir);
+  if (/^[A-Za-z]:[\\/]$/.test(dir)) drivesSeen.add(dir.toLowerCase());
+  else knownDirs.add(dir);
+  return { tree };
 });
 
-// 打开单个 md 文件：以文件所在目录为边界，返回 { root, tree, file } 或 null
-ipcMain.handle('select-file', async () => {
-  const res = await dialog.showOpenDialog(win, {
-    properties: ['openFile'],
-    filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
-  });
-  if (res.canceled || !res.filePaths.length) return null;
-  rootDir = path.dirname(res.filePaths[0]);
-  await saveConfig({ lastDir: rootDir });
-  return { root: rootDir, tree: await scanDir(rootDir), file: res.filePaths[0] };
+// 渲染层打开文件后上报，记入「最近打开」（只接受可浏览范围内的文件）
+ipcMain.handle('add-recent', async (_e, p) => {
+  if (typeof p !== 'string' || !pathAllowed(p)) return;
+  await addRecent(p);
 });
 
 ipcMain.handle('read-file', async (_e, p) => {
-  if (!rootDir || !isInside(rootDir, p)) throw new Error('路径在所选目录之外');
+  if (typeof p !== 'string' || !pathAllowed(p)) throw new Error('路径不在可浏览范围内');
   const text = await fs.readFile(p, 'utf8');
   return text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text; // 去掉 BOM
 });
@@ -132,15 +177,20 @@ ipcMain.handle('resolve-images', (_e, filePath, srcs) => {
 
 // 保存当前编辑内容（菜单 文件 → 保存 / Ctrl+S），与 read-file 同样的边界校验
 ipcMain.handle('write-file', async (_e, p, text) => {
-  if (!rootDir || !isInside(rootDir, p)) throw new Error('路径在所选目录之外');
+  if (typeof p !== 'string' || !pathAllowed(p)) throw new Error('路径不在可浏览范围内');
   await fs.writeFile(p, text, 'utf8');
+});
+
+// 原生菜单栏明暗跟随渲染风格（Windows 菜单栏随应用深色模式着色）
+ipcMain.handle('set-theme', (_e, dark) => {
+  nativeTheme.themeSource = dark ? 'dark' : 'light';
 });
 
 // ---------- 图片协议 ----------
 
 function handleMdfile(request) {
   const p = decodeURIComponent(new URL(request.url).pathname).replace(/^\//, '');
-  if (!rootDir || !isInside(rootDir, p)) return new Response('forbidden', { status: 403 });
+  if (!pathAllowed(p)) return new Response('forbidden', { status: 403 });
   return fs.readFile(p).then(
     (data) => {
       const mime = {
@@ -179,13 +229,60 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`;
 
-function buildMenu() {
+// 打开路径（菜单打开文件 / 最近打开共用）：放行父目录、记入最近、通知渲染层
+async function openByPath(filePath) {
+  try {
+    await fs.access(filePath);
+  } catch {
+    // 文件已不存在（如最近打开索引里的文件被删）：从索引移除并提示渲染层
+    // （不做弹框，同步阻塞会挂死自动化）
+    const cfg = await loadConfig();
+    await saveConfig({ recent: cfg.recent.filter((p) => p !== filePath) });
+    await buildMenu();
+    win?.webContents.send('open-file-error', { path: filePath });
+    return;
+  }
+  markOpenable(filePath);
+  await addRecent(filePath);
+  win?.webContents.send('open-file-path', { path: filePath });
+}
+
+// 菜单 文件 → 打开文件：对话框选一个 md，树定位展开并打开
+async function openFileDialog() {
+  const res = await dialog.showOpenDialog(win, {
+    properties: ['openFile'],
+    filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
+  });
+  if (res.canceled || !res.filePaths.length) return;
+  await openByPath(res.filePaths[0]);
+}
+
+// 菜单 文件 → 打开文件夹：对话框选目录，树从我的电脑定位展开到它
+async function openFolderDialog() {
+  const res = await dialog.showOpenDialog(win, { properties: ['openDirectory'] });
+  if (res.canceled || !res.filePaths.length) return;
+  win?.webContents.send('locate-path', { path: res.filePaths[0] });
+}
+
+async function buildMenu() {
+  // 「最近打开」索引：最多 3 个，启动时把已不存在的文件滤掉
+  const cfg = await loadConfig();
+  const recentItems = [];
+  for (const p of cfg.recent) {
+    try { await fs.access(p); } catch { continue; }
+    recentItems.push({ label: path.basename(p), title: p, click: () => openByPath(p) });
+  }
   appMenu = Menu.buildFromTemplate([
     {
       label: '文件',
       submenu: [
-        { label: '打开文件', accelerator: 'CmdOrCtrl+O', click: () => win?.webContents.send('menu-command', 'open-file') },
-        { label: '打开文件夹', accelerator: 'CmdOrCtrl+Shift+O', click: () => win?.webContents.send('menu-command', 'open-folder') },
+        { label: '打开文件', accelerator: 'CmdOrCtrl+O', click: openFileDialog },
+        { label: '打开文件夹', accelerator: 'CmdOrCtrl+Shift+O', click: openFolderDialog },
+        {
+          label: '最近打开',
+          submenu: recentItems.length ? recentItems : [{ label: '（暂无最近文件）', enabled: false }],
+        },
+        { type: 'separator' },
         { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => win?.webContents.send('menu-command', 'save') },
         { type: 'separator' },
         { role: 'quit', label: '退出' },
@@ -255,7 +352,7 @@ function buildMenu() {
 
 // ---------- 窗口 ----------
 
-function createWindow() {
+async function createWindow() {
   win = new BrowserWindow({
     title: 'Tot',
     icon: path.join(__dirname, 'Tot.png'),
@@ -268,7 +365,7 @@ function createWindow() {
     },
   });
 
-  buildMenu();
+  await buildMenu();
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
   // 开发模式：渲染进程 console 转发到终端（验证「DevTools 无报错」用）
@@ -284,36 +381,47 @@ function createWindow() {
 
   win.on('closed', () => { win = null; });
 
-  // 生产行为：启动时自动恢复上次打开的目录（无 TOT_OPEN_DIR 时）
-  // 仅开发/自动验证用：TOT_OPEN_DIR 启动即打开该目录（跳过对话框）；
-  // TOT_OPEN_FILE 按文件名自动打开一个文件；TOT_SCREENSHOT 截两张图（顶部 + 滚动后）后退出；
+  // 启动：目录浏览以「我的电脑」为根（盘符 → 文件夹 → 文件，树懒加载），
+  // 不做任何自动重开；文件菜单的「最近打开」索引负责快速回到最近文件
+  // 仅开发/自动验证用：TOT_OPEN_DIR 定位展开到该目录；TOT_OPEN_FILE 再自动打开一个文件；
   // TOT_CHECK 在页面里跑断言并打印 DOM 状态（树/渲染/大纲/scrollspy）后退出
   win.webContents.on('did-finish-load', async () => {
     if (!process.env.TOT_OPEN_DIR) {
-      const cfg = await loadConfig();
-      if (cfg.lastDir) {
-        rootDir = cfg.lastDir;
-        win.webContents.send('directory-selected', { root: rootDir, tree: await scanDir(rootDir) });
+      win.webContents.send('init-tree', { drives: await listDrives() });
+      if (process.env.TOT_RECENT_MISSING) {
+        // 最近打开的文件被删除：openByPath 应移除索引并在渲染层提示
+        await new Promise((r) => setTimeout(r, 800));
+        await openByPath(process.env.TOT_RECENT_MISSING);
+        await new Promise((r) => setTimeout(r, 400));
+        console.log('[dev:recent-missing]', JSON.stringify({
+          recentLabels: appMenu.items[0].submenu.items.find((i) => i.label === '最近打开')?.submenu.items.map((i) => i.label ?? i.type),
+          status: await win.webContents.executeJavaScript(`document.querySelector('#save-status').textContent`),
+        }));
+        app.quit();
+        return;
       }
       if (process.env.TOT_CHECK) {
         await new Promise((r) => setTimeout(r, 800));
-        console.log('[dev:restore]', await win.webContents.executeJavaScript(
-          `JSON.stringify({ root: ${JSON.stringify(cfg.lastDir || null)}, treeFiles: [...document.querySelectorAll('#file-tree a')].map((a) => a.textContent) })`,
+        console.log('[dev:start]', await win.webContents.executeJavaScript(
+          `JSON.stringify({ treeDirs: [...document.querySelectorAll('#file-tree summary')].map((s) => s.textContent), treeFiles: [...document.querySelectorAll('#file-tree a')].map((a) => a.title), tabs: document.querySelectorAll('.tab').length })`,
         ));
+        console.log('[dev:recent]', JSON.stringify({
+          recentLabels: appMenu.items[0].submenu.items.find((i) => i.label === '最近打开')?.submenu.items.map((i) => i.label ?? i.type),
+          stored: (await loadConfig()).recent,
+        }));
         app.quit();
       }
       return;
     }
     try {
-      const dir = process.env.TOT_OPEN_DIR;
-      rootDir = path.resolve(dir);
-      if (process.env.TOT_SAVE_CONFIG) await saveConfig({ lastDir: rootDir });
-      win.webContents.send('directory-selected', { root: rootDir, tree: await scanDir(rootDir) });
+      const dir = path.resolve(process.env.TOT_OPEN_DIR);
+      win.webContents.send('init-tree', { drives: await listDrives() });
+      win.webContents.send('locate-path', { path: dir });
         if (process.env.TOT_OPEN_FILE) {
-          await new Promise((r) => setTimeout(r, 400));
-          await win.webContents.executeJavaScript(
-            `[...document.querySelectorAll('#file-tree a')].find((a) => a.textContent === ${JSON.stringify(process.env.TOT_OPEN_FILE)})?.click()`,
-          );
+          await new Promise((r) => setTimeout(r, 2500)); // 等目录链懒加载定位完成
+          const file = path.join(dir, process.env.TOT_OPEN_FILE);
+          markOpenable(file);
+          win.webContents.send('open-file-path', { path: file });
         }
         if (process.env.TOT_CHECK) {
           console.log('[dev:menu]', JSON.stringify({
@@ -324,7 +432,7 @@ function createWindow() {
             windowItems: appMenu.items[3].submenu.items.map((i) => i.label ?? i.type),
             saveAcc: appMenu.items[0].submenu.items.find((i) => i.label === '保存')?.accelerator,
           }));
-          await new Promise((r) => setTimeout(r, 800));
+          await new Promise((r) => setTimeout(r, 2500));
           const check = `JSON.stringify({
             treeFiles: [...document.querySelectorAll('#file-tree a')].map((a) => a.textContent),
             treeDirs: [...document.querySelectorAll('#file-tree summary')].map((s) => s.textContent),
@@ -342,8 +450,17 @@ function createWindow() {
             tabs: document.querySelectorAll('.tab').length,
             activeTab: document.querySelector('.tab.active .tab-name')?.textContent ?? null,
             style: document.body.className + '/' + (localStorage.getItem('tot-style') || 'none'),
+            panelLabels: [...document.querySelectorAll('.panel-header span')].map((s) => s.textContent),
+            panelCollapsed: [document.querySelector('#sidebar').classList.contains('tree-collapsed'), document.querySelector('#sidebar').classList.contains('outline-collapsed')],
+            panelVisible: [!document.querySelector('#tree-header').hidden, !document.querySelector('#outline-header').hidden, !document.querySelector('#outline-body').hidden],
+            sidebarWidth: Math.round(document.querySelector('#sidebar').getBoundingClientRect().width),
+            outlineHeight: Math.round(document.querySelector('#outline-body').getBoundingClientRect().height),
           })`;
           console.log('[dev:check1]', await win.webContents.executeJavaScript(check));
+          console.log('[dev:recent]', JSON.stringify({
+            recentLabels: appMenu.items[0].submenu.items.find((i) => i.label === '最近打开')?.submenu.items.map((i) => i.label ?? i.type),
+            stored: (await loadConfig()).recent,
+          }));
           await win.webContents.executeJavaScript(
             `window.__scrollLog = []; document.querySelector('#preview-scroll').addEventListener('scroll', () => window.__scrollLog.push(performance.now().toFixed(0) + ':' + document.querySelector('#preview-scroll').scrollTop)); document.querySelectorAll('#viewer h3')[1]?.scrollIntoView({ block: 'start' });`,
           );
@@ -384,10 +501,11 @@ function createWindow() {
                 }, 400);
               })`,
             ));
+            console.log('[dev:theme]', JSON.stringify({ themeSource: nativeTheme.themeSource }));
           }
         }
         if (process.env.TOT_TABS) {
-          await new Promise((r) => setTimeout(r, 800));
+          await new Promise((r) => setTimeout(r, 3000)); // 等树懒加载定位完成
           // tabs1: 打开第二个文件 → 两个标签页
           await win.webContents.executeJavaScript(
             `[...document.querySelectorAll('#file-tree a')].find((a) => a.textContent === '02-第二章.md')?.click()`,
@@ -441,7 +559,7 @@ function createWindow() {
           await win.webContents.executeJavaScript(`document.querySelector('#edit-toggle').click()`);
           await new Promise((r) => setTimeout(r, 300));
           await win.webContents.executeJavaScript(
-            `const ed = document.querySelector('#editor'); ed.value = ed.value + 'x'; ed.dispatchEvent(new Event('input', { bubbles: true }));`,
+            `{ const ed = document.querySelector('#editor'); ed.value = ed.value + 'x'; ed.dispatchEvent(new Event('input', { bubbles: true })); }`,
           );
           await new Promise((r) => setTimeout(r, 200));
           await win.webContents.executeJavaScript(`document.querySelector('.tab-close').click()`);
@@ -466,7 +584,12 @@ function createWindow() {
           ));
         }
         if (process.env.TOT_EDIT) {
-          const editFile = path.join(rootDir, process.env.TOT_OPEN_FILE || 'README.md');
+          const editFile = path.join(path.resolve(process.env.TOT_OPEN_DIR), process.env.TOT_OPEN_FILE || 'README.md');
+          await new Promise((r) => setTimeout(r, 3000)); // 等树懒加载定位完成
+          // 自包含：确保文件已打开（与 TOT_TABS 组合运行时可能已被全部关闭）
+          await win.webContents.executeJavaScript(
+            `[...document.querySelectorAll('#file-tree a')].find((a) => a.title === ${JSON.stringify(editFile)})?.click()`,
+          );
           await new Promise((r) => setTimeout(r, 800));
           // edit0: 预览模式下保存按钮变灰不可操作
           console.log('[dev:edit0]', await win.webContents.executeJavaScript(
@@ -487,9 +610,9 @@ function createWindow() {
           ));
           // edit2: 插入标记文本 → dirty 出现
           await win.webContents.executeJavaScript(
-            `const ed = document.querySelector('#editor');
-             ed.value = ed.value + '\\n\\n**TOT编辑测试段落**';
-             ed.dispatchEvent(new Event('input', { bubbles: true }));`,
+            `{ const ed = document.querySelector('#editor');
+               ed.value = ed.value + '\\n\\n**TOT编辑测试段落**';
+               ed.dispatchEvent(new Event('input', { bubbles: true })); }`,
           );
           await new Promise((r) => setTimeout(r, 200));
           console.log('[dev:edit2]', await win.webContents.executeJavaScript(
@@ -537,10 +660,10 @@ function createWindow() {
           await new Promise((r) => setTimeout(r, 800));
           // search1: Ctrl+F 开搜索条，输入查询
           await win.webContents.executeJavaScript(
-            `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }));
-             const si = document.querySelector('#search-input');
-             si.value = ${JSON.stringify(process.env.TOT_SEARCH_QUERY || '测试')};
-             si.dispatchEvent(new Event('input', { bubbles: true }));`,
+            `{ document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }));
+               const si = document.querySelector('#search-input');
+               si.value = ${JSON.stringify(process.env.TOT_SEARCH_QUERY || '测试')};
+               si.dispatchEvent(new Event('input', { bubbles: true })); }`,
           );
           await new Promise((r) => setTimeout(r, 300));
           console.log('[dev:search1]', await win.webContents.executeJavaScript(
@@ -571,7 +694,7 @@ function createWindow() {
           ));
         }
         if (process.env.TOT_DRAG) {
-          await new Promise((r) => setTimeout(r, 800));
+          await new Promise((r) => setTimeout(r, 3000)); // 等树懒加载定位完成
           const drag = (x0, x1, y) => win.webContents.executeJavaScript(
             `{ const fire = (type, x, yy, target) => target.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: yy, bubbles: true }));
               const r = document.querySelector('#sidebar-resizer');
@@ -595,22 +718,78 @@ function createWindow() {
           await drag(600, 0, 300);
           await new Promise((r) => setTimeout(r, 200));
           console.log('[dev:drag3]', await win.webContents.executeJavaScript(
-            `JSON.stringify({ sidebarWidth: document.querySelector('#sidebar').getBoundingClientRect().width })`,
+            `JSON.stringify({ sidebarWidth: document.querySelector('#sidebar').getBoundingClientRect().width, stored: localStorage.getItem('tot-panels') })`,
           ));
-          // drag4: outline 高度下拉 80px
-          await win.webContents.executeJavaScript(
-            `{ window.__oh0 = document.querySelector('#outline-box').getBoundingClientRect().height;
-              const fire = (type, yy, target) => target.dispatchEvent(new PointerEvent(type, { clientX: 100, clientY: yy, bubbles: true }));
-              const r = document.querySelector('#outline-resizer');
-              const sy = r.getBoundingClientRect().top;
-              fire('pointerdown', sy, r);
-              fire('pointermove', sy + 80, document);
-              fire('pointerup', sy + 80, document); }`,
+        }
+        if (process.env.TOT_PANELS) {
+          await new Promise((r) => setTimeout(r, 3000)); // 等树懒加载定位完成
+          // TOT_STYLE 指定时先切换到该风格再截（驱动侧兼容旧风格名）
+          const styleId = { light: 'github-light', dark: 'github-dark' }[process.env.TOT_STYLE] || process.env.TOT_STYLE;
+          if (styleId) {
+            await win.webContents.executeJavaScript(
+              `{ const sel = document.querySelector('#style-select'); sel.value = ${JSON.stringify(styleId)}; sel.dispatchEvent(new Event('change')); }`,
+            );
+            await new Promise((r) => setTimeout(r, 600));
+          }
+          const base = process.env.TOT_PANELS.replace(/\.png$/i, '');
+          const shot = async (name) => {
+            const img = await win.webContents.capturePage();
+            await fs.writeFile(`${base}-${name}.png`, img.toPNG());
+            console.log(`[dev] screenshot saved: ${base}-${name}.png`);
+          };
+          const pstate = () => win.webContents.executeJavaScript(
+            `JSON.stringify({
+              labels: [...document.querySelectorAll('.panel-header span')].map((s) => s.textContent),
+              toggles: [...document.querySelectorAll('.panel-toggle')].map((b) => b.textContent),
+              treeCollapsed: document.querySelector('#sidebar').classList.contains('tree-collapsed'),
+              outlineCollapsed: document.querySelector('#sidebar').classList.contains('outline-collapsed'),
+              treeHeader: getComputedStyle(document.querySelector('#tree-header')).display !== 'none',
+              outlineHeader: getComputedStyle(document.querySelector('#outline-header')).display !== 'none',
+              outlineBody: getComputedStyle(document.querySelector('#outline-body')).display !== 'none',
+              sidebarWidth: Math.round(document.querySelector('#sidebar').getBoundingClientRect().width),
+              outlineHeight: Math.round(document.querySelector('#outline-body').getBoundingClientRect().height),
+              openDirs: [...document.querySelectorAll('#file-tree details[open]')].map((d) => d.dataset.path),
+              dirHidden: [...document.querySelectorAll('#file-tree li.dir-hidden')].map((li) => li.querySelector('summary')?.textContent),
+              pathHidden: [...document.querySelectorAll('#file-tree li.path-hidden')].map((li) => li.querySelector('summary')?.textContent).length,
+              treeDirs: [...document.querySelectorAll('#file-tree summary')].filter((s) => !s.closest('li.path-hidden, li.dir-hidden')).map((s) => s.textContent).slice(0, 20),
+            })`,
           );
-          await new Promise((r) => setTimeout(r, 200));
-          console.log('[dev:drag4]', await win.webContents.executeJavaScript(
-            `JSON.stringify({ h0: window.__oh0, h1: document.querySelector('#outline-box').getBoundingClientRect().height })`,
-          ));
+          // 1. 空态默认：目录展开、大纲隐藏
+          await shot('1-empty');
+          console.log('[dev:panels1]', await pstate());
+          // 2. 打开文档默认：大纲展开、目录折叠
+          await win.webContents.executeJavaScript(
+            `[...document.querySelectorAll('#file-tree a')].find((a) => a.textContent === 'README.md')?.click()`,
+          );
+          await new Promise((r) => setTimeout(r, 800));
+          await shot('2-open');
+          console.log('[dev:panels2]', await pstate());
+          // 3. 手动展开目录 → 大纲自动折叠（标签钉底、内容不显示）
+          await win.webContents.executeJavaScript(`document.querySelector('#tree-toggle').click()`);
+          await new Promise((r) => setTimeout(r, 300));
+          await shot('3-tree-only');
+          console.log('[dev:panels3]', await pstate());
+          // 4. 手动展开大纲 → 目录自动折叠（标签钉顶、内容不显示）
+          await win.webContents.executeJavaScript(`document.querySelector('#outline-toggle').click()`);
+          await new Promise((r) => setTimeout(r, 300));
+          await shot('4-outline-only');
+          console.log('[dev:panels4]', await pstate());
+          // 5. 关闭标签页 → 回到空态默认
+          await win.webContents.executeJavaScript(`document.querySelector('.tab-close').click()`);
+          await new Promise((r) => setTimeout(r, 400));
+          console.log('[dev:panels5]', await pstate());
+          // 6. 树聚焦：先展开 nested 目录（懒加载出文件），再打开其中的 note.markdown
+          await win.webContents.executeJavaScript(
+            `[...document.querySelectorAll('#file-tree summary')].find((s) => s.textContent === 'nested')?.click()`,
+          );
+          await new Promise((r) => setTimeout(r, 600));
+          await win.webContents.executeJavaScript(
+            `[...document.querySelectorAll('#file-tree a')].find((a) => /nested[\\\\/]note\\.markdown$/.test(a.title))?.click()`,
+          );
+          await new Promise((r) => setTimeout(r, 800));
+          console.log('[dev:panels6]', await pstate());
+          await win.webContents.executeJavaScript(`document.querySelector('.tab-close').click()`);
+          await new Promise((r) => setTimeout(r, 400));
         }
         if (process.env.TOT_SCREENSHOT) {
           await new Promise((r) => setTimeout(r, Number(process.env.TOT_WAIT) || 1500));
@@ -637,7 +816,7 @@ function createWindow() {
     } catch (err) {
       console.error('[dev] auto-drive failed:', err);
     }
-    if (process.env.TOT_SCREENSHOT || process.env.TOT_CHECK) app.quit();
+    if (process.env.TOT_SCREENSHOT || process.env.TOT_CHECK || process.env.TOT_PANELS || process.env.TOT_DRAG) app.quit();
   });
 }
 

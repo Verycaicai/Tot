@@ -26,10 +26,16 @@
 
   <div id="main">
     <aside id="sidebar">
+      <div class="panel-header" id="tree-header">
+        <span>目录浏览</span>
+        <button class="panel-toggle" id="tree-toggle" title="折叠 / 展开">▾</button>
+      </div>
       <nav id="file-tree"></nav>
-      <div id="outline-resizer" hidden></div>
-      <div id="outline-box" hidden>
-        <div id="outline-title">大纲</div>
+      <div class="panel-header" id="outline-header" hidden>
+        <span>大纲视图</span>
+        <button class="panel-toggle" id="outline-toggle" title="折叠 / 展开">▾</button>
+      </div>
+      <div id="outline-body" hidden>
         <ul id="outline"></ul>
       </div>
     </aside>
