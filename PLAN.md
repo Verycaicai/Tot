@@ -51,7 +51,7 @@ md-browser/
 ### 进程分工
 
 - **主进程**：原生菜单（menu-command 推送）、目录/文件对话框、盘符枚举 + 单层扫描 scan-children（只收 .md/.markdown 与子目录，跳过点开头目录与系统缓存目录）、readFile/writeFile/mdfile 按需读写（knownDirs 链条式信任边界——渲染层只能扩展已见过的目录）、config.json 存最近打开
-- **preload**：contextBridge 白名单 11 个 API
+- **preload**：contextBridge 白名单 13 个 API
 - **渲染进程**：全部 UI 逻辑（树懒加载 + 路径聚焦、面板互斥、标签页/编辑/搜索/大纲）
 
 ### 多标签页
@@ -67,7 +67,8 @@ md-browser/
 
 ### 查找（Ctrl+F）
 
-- TreeWalker 收集活动渲染区文本节点（跳过 script/style/mark）→ 大小写不敏感 → `mark.tot-search` 高亮全部 + `.current` 区分 → prev/next scrollIntoView；渲染管线末尾统一 applySearch（重渲染后自动重应用，幂等）
+- TreeWalker 收集活动渲染区文本节点（跳过 script/style/mark）→ 拼接全文大小写不敏感查找 → 区间回映切分 → `mark.tot-search` 高亮全部 + `.current` 区分 → prev/next scrollIntoView；渲染管线末尾统一 applySearch（重渲染后自动重应用，幂等）
+- 搜索条常显顶栏（编辑/保存按钮后，风格选择最右）：Ctrl+F 聚焦，Esc / × 清除查询与高亮
 
 ### 渲染与大纲
 
@@ -128,6 +129,13 @@ md-browser/
 - 最近打开的文件若已被删除：点击时自动从索引移除并在状态栏提示（openByPath fs.access 预检 + open-file-error 推送；渲染层 readFile 失败兜底）
 - 文件关联双击打开（Windows「打开方式」关联 .md 后双击）：argv 传入的 .md 路径启动即打开（did-finish-load 排空 startupMdPaths）；单实例锁——已运行实例经 second-instance 接收路径、恢复并聚焦窗口、打开文件；ELECTRON_RUN_AS_NODE 兜底重启透传 argv
 - 验证：[dev:panels1-6] 状态断言（互斥/聚焦/dirHidden/pathHidden/treeDirs）+ 亮暗截图；[dev:drag1-3] 侧栏宽度 clamp + 持久化；[dev:start] 盘符树；[dev:recent] 最近打开菜单与 config 一致；[dev:recent-missing] 被删文件自动出索引 + 提示；[dev:argv1] argv 启动打开；[dev:argv2] second-instance 转交打开
+
+## 1.1.2 修正（搜索匹配 / 常显搜索条 / 拖入打开）
+
+- 搜索匹配跨节点：文本节点拼接成全文查找，命中区间按字符偏移回映到各文本节点切分——跨内联格式（**加粗**边界）与代码高亮 span 边界的词可匹配（原实现按单个文本节点 indexOf，跨边界即 0 匹配）；空白文本节点保留参与拼接（相邻匹配需要）
+- 搜索条常显顶栏：[保存状态/编辑/保存/搜索条] 一组居左，渲染风格选择居最右；Ctrl+F 只聚焦搜索框，Esc / × 清除查询与高亮（搜索条不再隐藏，编辑保存后保持）
+- 拖入打开：document 级 dragover/drop 拦截默认导航（Chromium 默认把窗口导航到被拖的文件，顶掉整个应用界面）→ webUtils.getPathForFile 取路径（Electron 32+ File.path 已移除）→ open-dropped IPC（仅收 .md/.markdown）→ openByPath 全流程（放行父目录 + 最近打开 + 打开标签页）
+- 验证：[dev:search1-4] 跨边界查询断言 + 顶栏布局断言（topbarKids/controlsKids/barAfterSave/selectAtRight）；[dev:drop1-3] 合成 drop 拦截默认导航 / 目录外真实路径打开 / 非 md 拒绝
 
 ## 已知限制（1.1）
 

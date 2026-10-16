@@ -547,17 +547,17 @@ let searchState = { query: '', matches: [], current: -1 };
 
 function openSearch() {
   if (!activeTab) return;
-  $('#searchbar').hidden = false;
   $('#search-input').focus();
   $('#search-input').select();
 }
 
+// 搜索条常驻顶栏：关闭 = 清除查询与高亮（Ctrl+F 聚焦，Esc / × 清除）
 function closeSearch() {
-  $('#searchbar').hidden = true;
   clearMarks();
   searchState = { query: '', matches: [], current: -1 };
   $('#search-input').value = '';
   $('#search-count').textContent = '';
+  $('#search-input').blur();
 }
 
 // 移除所有搜索高亮，还原文本节点
@@ -567,7 +567,7 @@ function clearMarks() {
   });
 }
 
-// 收集渲染区里的文本节点（跳过 script/style/mark）
+// 收集渲染区里的文本节点（跳过 script/style/mark；空白节点保留——跨节点匹配需要它们衔接）
 function collectTextNodes(root) {
   const nodes = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -576,7 +576,7 @@ function collectTextNodes(root) {
       if (!parent || ['SCRIPT', 'STYLE', 'MARK'].includes(parent.tagName)) {
         return NodeFilter.FILTER_REJECT;
       }
-      return node.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      return NodeFilter.FILTER_ACCEPT;
     },
   });
   let n;
@@ -584,27 +584,39 @@ function collectTextNodes(root) {
   return nodes;
 }
 
-// 在活动渲染区里高亮所有匹配（先收集再替换，避免边遍历边变异）
+// 在活动渲染区里高亮所有匹配：文本节点拼接成全文后查找，命中区间按字符偏移
+// 回映到各文本节点切分——跨内联格式（加粗边界）与代码高亮 span 边界的词也能匹配
 function applySearch() {
   clearMarks();
   const q = searchState.query;
   const viewer = activeViewer();
-  if (!q || !viewer) return;
+  if (!q || !viewer || !activeTab) return;
   const ql = q.toLowerCase();
+  const nodes = collectTextNodes(viewer);
+  const ranges = [];
+  const lower = nodes.map((n) => n.textContent).join('').toLowerCase();
+  let idx = lower.indexOf(ql);
+  while (idx >= 0) {
+    ranges.push([idx, idx + q.length]);
+    idx = lower.indexOf(ql, idx + q.length);
+  }
   const matches = [];
-  for (const node of collectTextNodes(viewer)) {
+  let base = 0;   // 当前节点在全文中的起点
+  let ri = 0;     // 下一个待切分的区间（区间互不重叠且按起点有序）
+  for (const node of nodes) {
     const text = node.textContent;
-    const lower = text.toLowerCase();
-    const ranges = [];
-    let idx = lower.indexOf(ql);
-    while (idx >= 0) {
-      ranges.push([idx, idx + q.length]);
-      idx = lower.indexOf(ql, idx + q.length);
+    const end = base + text.length;
+    const segs = [];
+    while (ri < ranges.length && ranges[ri][0] < end) {
+      segs.push([Math.max(ranges[ri][0] - base, 0), Math.min(ranges[ri][1] - base, text.length)]);
+      if (ranges[ri][1] > end) break; // 区间跨到下一个文本节点，剩余部分下个节点继续
+      ri++;
     }
-    if (!ranges.length) continue;
+    base = end;
+    if (!segs.length) continue;
     const frag = document.createDocumentFragment();
     let pos = 0;
-    for (const [s, e] of ranges) {
+    for (const [s, e] of segs) {
       if (s > pos) frag.append(document.createTextNode(text.slice(pos, s)));
       const mark = document.createElement('mark');
       mark.className = 'tot-search';
@@ -721,6 +733,20 @@ document.addEventListener('pointerleave', () => { dragState = null; });
 
 $('#sidebar-resizer').addEventListener('pointerdown', (e) => startDrag(e));
 
+// ---------- 拖入文件打开 ----------
+
+// 拦截默认行为：Chromium 默认把窗口导航到被拖的文件（顶掉整个应用界面），
+// 这里改成把 .md 文件路径交给主进程走「打开文件」全流程（放行目录 + 最近打开 + 打开标签页）
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  for (const f of e.dataTransfer.files) {
+    let p = '';
+    try { p = window.tot.getPathForFile(f); } catch {}
+    if (p) window.tot.openDropped(p);
+  }
+});
+
 // ---------- 全局快捷键（渲染层只处理无菜单冲突的键；Ctrl+S/O 走主进程菜单） ----------
 
 document.addEventListener('keydown', (e) => {
@@ -733,7 +759,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     const i = tabs.indexOf(activeTab);
     activateTab(e.shiftKey ? tabs[(i - 1 + tabs.length) % tabs.length] : tabs[(i + 1) % tabs.length]);
-  } else if (e.key === 'Escape' && !$('#searchbar').hidden) {
+  } else if (e.key === 'Escape' && $('#search-input').value) {
     closeSearch();
   }
 });

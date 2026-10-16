@@ -186,6 +186,13 @@ ipcMain.handle('set-theme', (_e, dark) => {
   nativeTheme.themeSource = dark ? 'dark' : 'light';
 });
 
+// 拖入文件打开：只收 .md/.markdown，与菜单打开同一流程
+// （openByPath 预检存在性、放行父目录、记入最近打开并通知渲染层）
+ipcMain.handle('open-dropped', async (_e, p) => {
+  if (typeof p !== 'string' || !/\.(md|markdown)$/i.test(p)) return;
+  await openByPath(p);
+});
+
 // ---------- 图片协议 ----------
 
 function handleMdfile(request) {
@@ -363,7 +370,7 @@ let winReady = false;
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Tot',
-    icon: path.join(__dirname, 'Tot.png'),
+    icon: path.join(__dirname, 'icon.ico'),
     width: 1280,
     height: 840,
     webPreferences: {
@@ -690,6 +697,10 @@ async function createWindow() {
           console.log('[dev:search1]', await win.webContents.executeJavaScript(
             `JSON.stringify({
               barShown: !document.querySelector('#searchbar').hidden,
+              topbarKids: [...document.querySelector('#topbar').children].map((c) => c.id),
+              controlsKids: [...document.querySelector('#controls').children].map((c) => c.id),
+              barAfterSave: (() => { const a = document.querySelector('#searchbar').getBoundingClientRect(); const b = document.querySelector('#save-btn').getBoundingClientRect(); return a.left >= b.right; })(),
+              selectAtRight: Math.round(window.innerWidth - document.querySelector('#style-select').getBoundingClientRect().right),
               marks: document.querySelectorAll('#viewer mark.tot-search').length,
               count: document.querySelector('#search-count').textContent,
               currentIdx: [...document.querySelectorAll('#viewer mark.tot-search')].findIndex((m) => m.classList.contains('current')),
@@ -707,12 +718,52 @@ async function createWindow() {
           console.log('[dev:search3]', await win.webContents.executeJavaScript(
             `JSON.stringify({ marksInEditViewer: document.querySelectorAll('#edit-viewer mark.tot-search').length })`,
           ));
-          // search4: Esc 关闭并清除高亮
+          // search4: Esc 清除查询与高亮（搜索条常显不隐藏）
           await win.webContents.executeJavaScript(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
           await new Promise((r) => setTimeout(r, 200));
           console.log('[dev:search4]', await win.webContents.executeJavaScript(
-            `JSON.stringify({ barHidden: document.querySelector('#searchbar').hidden, marks: document.querySelectorAll('#edit-viewer mark.tot-search').length })`,
+            `JSON.stringify({ barShown: !document.querySelector('#searchbar').hidden, inputCleared: document.querySelector('#search-input').value === '', marks: document.querySelectorAll('#edit-viewer mark.tot-search').length })`,
           ));
+        }
+        if (process.env.TOT_DROP) {
+          await new Promise((r) => setTimeout(r, 1500));
+          // drop1: 合成 drop（无磁盘路径的 File）→ 默认导航被拦截，不打开标签
+          console.log('[dev:drop1]', await win.webContents.executeJavaScript(
+            `(async () => {
+              const dt = new DataTransfer();
+              dt.items.add(new File(['# fake'], 'fake.md', { type: 'text/markdown' }));
+              const target = document.body;
+              target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+              const prevented = !target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+              await new Promise((r) => setTimeout(r, 400));
+              return JSON.stringify({
+                prevented,
+                tabCount: document.querySelectorAll('.tab').length,
+                url: location.pathname.split('/').pop(),
+              });
+            })()`,
+          ));
+          // drop2: fixture 目录之外的真实路径经 open-dropped 打开（覆盖目录放行 + 打开流程）
+          const dropDir = path.join(process.env.TEMP || 'C:\\Windows\\Temp', 'tot-drop-outside');
+          await fs.mkdir(dropDir, { recursive: true });
+          const dropFile = path.join(dropDir, 'dropped.md');
+          await fs.writeFile(dropFile, '# 拖入打开成功\n', 'utf8');
+          await win.webContents.executeJavaScript(`window.tot.openDropped(${JSON.stringify(dropFile)})`);
+          await new Promise((r) => setTimeout(r, 800));
+          console.log('[dev:drop2]', await win.webContents.executeJavaScript(
+            `JSON.stringify({
+              tabName: document.querySelector('.tab.active .tab-name')?.textContent ?? null,
+              h1: document.querySelector('#viewer h1')?.textContent ?? null,
+              tabCount: document.querySelectorAll('.tab').length,
+            })`,
+          ));
+          // drop3: 非 md 路径被拒
+          await win.webContents.executeJavaScript(`window.tot.openDropped(${JSON.stringify(path.join(dropDir, 'x.txt'))})`);
+          await new Promise((r) => setTimeout(r, 300));
+          console.log('[dev:drop3]', await win.webContents.executeJavaScript(
+            `JSON.stringify({ tabCount: document.querySelectorAll('.tab').length })`,
+          ));
+          await fs.unlink(dropFile).catch(() => {});
         }
         if (process.env.TOT_DRAG) {
           await new Promise((r) => setTimeout(r, 3000)); // 等树懒加载定位完成
@@ -837,7 +888,7 @@ async function createWindow() {
     } catch (err) {
       console.error('[dev] auto-drive failed:', err);
     }
-    if (process.env.TOT_SCREENSHOT || process.env.TOT_CHECK || process.env.TOT_PANELS || process.env.TOT_DRAG) app.quit();
+    if (process.env.TOT_SCREENSHOT || process.env.TOT_CHECK || process.env.TOT_PANELS || process.env.TOT_DRAG || process.env.TOT_DROP) app.quit();
   });
 }
 
